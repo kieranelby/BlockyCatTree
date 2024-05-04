@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlockyCatTree", "BlockyCatTree\BlockyCatTree.csproj", "{FA36F7A8-0708-457F-8E40-550D8F1DB0EB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlockCatTree.Test", "BlockCatTree.Test\BlockCatTree.Test.csproj", "{95F2D77E-B9E9-4BB3-940A-09602D86E1C7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FA36F7A8-0708-457F-8E40-550D8F1DB0EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA36F7A8-0708-457F-8E40-550D8F1DB0EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA36F7A8-0708-457F-8E40-550D8F1DB0EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA36F7A8-0708-457F-8E40-550D8F1DB0EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95F2D77E-B9E9-4BB3-940A-09602D86E1C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95F2D77E-B9E9-4BB3-940A-09602D86E1C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95F2D77E-B9E9-4BB3-940A-09602D86E1C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95F2D77E-B9E9-4BB3-940A-09602D86E1C7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
