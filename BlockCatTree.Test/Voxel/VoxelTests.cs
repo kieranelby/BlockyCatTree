@@ -1,6 +1,6 @@
-using BlockyCatTree;
+using BlockyCatTree.Voxel;
 
-namespace BlockCatTree.Test;
+namespace BlockCatTree.Test.Voxel;
 
 public class VoxelTests
 {

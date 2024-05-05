@@ -1,6 +1,7 @@
-using BlockyCatTree;
+using BlockyCatTree.Pixel;
+using BlockyCatTree.Pixel.IO;
 
-namespace BlockCatTree.Test;
+namespace BlockCatTree.Test.Pixel.IO;
 
 public class ArrayToSliceTests
 {

@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace BlockyCatTree;
+namespace BlockyCatTree.Pixel.IO;
 
 /// <summary>
 /// Helps print the contents of a slice to a terminal for debugging,

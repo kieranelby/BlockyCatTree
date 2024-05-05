@@ -1,4 +1,6 @@
-﻿namespace BlockyCatTree;
+﻿using BlockyCatTree.Pixel;
+
+namespace BlockyCatTree.Voxel;
 
 /// <summary>
 /// A 3d world made up of little 1x1x1 blocks, organised by height.

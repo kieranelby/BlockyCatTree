@@ -1,4 +1,4 @@
-﻿namespace BlockyCatTree;
+﻿namespace BlockyCatTree.Voxel;
 
 /// <summary>
 /// This is just one of the 3d axes, but height is a bit special due to gravity.

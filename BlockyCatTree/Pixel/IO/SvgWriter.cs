@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System.Xml;
 
-namespace BlockyCatTree;
+namespace BlockyCatTree.Pixel.IO;
 
 /// <summary>
 /// Helps turn the contents of 2d elements like slices and paths to an SVG file,

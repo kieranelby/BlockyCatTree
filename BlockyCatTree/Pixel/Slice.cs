@@ -1,4 +1,4 @@
-﻿namespace BlockyCatTree;
+﻿namespace BlockyCatTree.Pixel;
 
 /// <summary>
 /// You can think of it as a bitmap, or as a horizontal plane from one layer of voxels. 

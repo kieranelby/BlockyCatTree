@@ -25,4 +25,9 @@
       <ProjectReference Include="..\BlockyCatTree\BlockyCatTree.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Mesh\IO\" />
+      <Folder Include="Triangulate\" />
+    </ItemGroup>
+
 </Project>

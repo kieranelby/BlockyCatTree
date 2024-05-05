@@ -1,4 +1,4 @@
-﻿namespace BlockyCatTree;
+﻿namespace BlockyCatTree.Pixel.IO;
 
 public static class ArrayToSlice
 {

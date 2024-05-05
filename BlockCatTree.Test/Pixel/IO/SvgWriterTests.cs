@@ -1,7 +1,8 @@
 ﻿using System.Xml.Linq;
-using BlockyCatTree;
+using BlockyCatTree.Pixel;
+using BlockyCatTree.Pixel.IO;
 
-namespace BlockCatTree.Test;
+namespace BlockCatTree.Test.Pixel.IO;
 
 [TestFixture]
 public class SvgWriterTests

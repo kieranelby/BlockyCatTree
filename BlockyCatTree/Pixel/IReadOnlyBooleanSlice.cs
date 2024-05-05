@@ -1,4 +1,4 @@
-﻿namespace BlockyCatTree;
+﻿namespace BlockyCatTree.Pixel;
 
 public interface IReadOnlyBooleanSlice
 {
