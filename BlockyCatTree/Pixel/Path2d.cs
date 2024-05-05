@@ -1,11 +1,15 @@
 ﻿namespace BlockyCatTree.Pixel;
 
-public record Path2d
+public record Path2d(List<Point2d> Points)
 {
-    public List<Point2d> Points { get; init; }
-
-    public Path2d(List<Point2d>? points = null)
+    public Path2d() : this([])
     {
-        Points = points ?? [];
+    }
+
+    public bool IsEmpty => Points.Count == 0;
+
+    public void Add(Point2d position)
+    {
+        Points.Add(position);
     }
 }

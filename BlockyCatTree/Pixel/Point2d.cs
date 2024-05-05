@@ -1,4 +1,6 @@
-﻿namespace BlockyCatTree.Pixel;
+﻿using BlockyCatTree.Triangulate;
+
+namespace BlockyCatTree.Pixel;
 
 /// <remarks>
 /// Note that:
@@ -15,4 +17,17 @@ public readonly record struct Point2d(int X, int Y)
     public static readonly Point2d Origin = new Point2d(0, 0);
     public Point2d Minus(Point2d other) => new Point2d(X - other.X, Y - other.Y);
     public Point2d Plus(Point2d other) => new Point2d(X + other.X, Y + other.Y);
+
+    public Point2d Rotate(RotationDirection rotationDirection)
+    {
+        switch (rotationDirection)
+        {
+            case RotationDirection.Clockwise:
+                return new Point2d(-Y, X);
+            case RotationDirection.CounterClockwise:
+                return new Point2d(Y, -X);
+            default:
+                throw new ArgumentOutOfRangeException(nameof(rotationDirection), rotationDirection, null);
+        }
+    }
 }

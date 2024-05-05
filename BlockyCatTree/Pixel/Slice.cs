@@ -28,11 +28,11 @@ public class Slice<TPayload> : IReadOnlyBooleanSlice where TPayload : struct
         _pointToPayload.Remove(point2d);
     }
 
-    public (Point2d Min, Point2d Max) GetInclusiveBounds() =>
+    public Bounds2d GetInclusiveBounds() =>
         IsEmpty
-            ? (Point2d.Origin, Point2d.Origin)
+            ? new Bounds2d(Point2d.Origin, Point2d.Origin)
             // TODO - might want to cache for performance? 
-            : (new Point2d(
+            : new Bounds2d(new Point2d(
                     _pointToPayload.Keys.Min(p => p.X),
                     _pointToPayload.Keys.Min(p => p.Y)
                 ), new Point2d(

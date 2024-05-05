@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Xml;
+using BlockyCatTree.Triangulate;
 
 namespace BlockyCatTree.Pixel.IO;
 
@@ -14,13 +15,21 @@ public class SvgWriter : IDisposable
     private readonly XmlWriter _xmlWriter;
     private bool _closed;
 
-    public SvgWriter(string outputFilename, (Point2d Min, Point2d Max) worldBounds, double scale)
+    private readonly record struct FractionalPoint(double X, double Y)
+    {
+        public FractionalPoint Plus(FractionalPoint other) => new(X + other.X, Y + other.Y);
+        public static FractionalPoint Make(Point2d point2d) => new(point2d.X, point2d.Y);
+        public static FractionalPoint Make(Point2d point2d, double vectorScale) =>
+            new(point2d.X * vectorScale, point2d.Y * vectorScale);
+    }
+
+    public SvgWriter(string outputFilename, Bounds2d worldBounds, double scale)
         : this(s => XmlWriter.Create(outputFilename, s), worldBounds, scale) {}
 
-    public SvgWriter(Stream outputStream, (Point2d Min, Point2d Max) worldBounds, double scale)
+    public SvgWriter(Stream outputStream, Bounds2d worldBounds, double scale)
         : this(s => XmlWriter.Create(outputStream, s), worldBounds, scale) {}
 
-    private SvgWriter(Func<XmlWriterSettings,XmlWriter> xmlWriterFactory, (Point2d Min, Point2d Max) worldBounds, double scale)
+    private SvgWriter(Func<XmlWriterSettings,XmlWriter> xmlWriterFactory, Bounds2d worldBounds, double scale)
     {
         var settings = new XmlWriterSettings
         {
@@ -55,20 +64,58 @@ public class SvgWriter : IDisposable
     public void AddSlice<TPayload>(Slice<TPayload> slice, Func<TPayload?,string> fillFunc) where TPayload : struct
     {
         var bounds = slice.GetInclusiveBounds();
-        for (var y = bounds.Min.Y; y <= bounds.Max.Y; y++)
+        foreach (var point2d in bounds.IterateRowMajor())
         {
-            for (var x = bounds.Min.X; x <= bounds.Max.X; x++)
-            {
-                var maybePayload = slice.Get(new Point2d(x, y));
-                var fill = fillFunc(maybePayload);
-                _xmlWriter.WriteStartElement("rect");
-                _xmlWriter.WriteAttributeString("x",$"{x}");
-                _xmlWriter.WriteAttributeString("y",$"{y}");
-                _xmlWriter.WriteAttributeString("width", "1");
-                _xmlWriter.WriteAttributeString("height", "1");
-                _xmlWriter.WriteAttributeString("fill", fill);
-                _xmlWriter.WriteEndElement(); // rect 
-            }
+            var maybePayload = slice.Get(point2d);
+            var fill = fillFunc(maybePayload);
+            _xmlWriter.WriteStartElement("rect");
+            _xmlWriter.WriteAttributeString("x",$"{point2d.X}");
+            _xmlWriter.WriteAttributeString("y",$"{point2d.Y}");
+            _xmlWriter.WriteAttributeString("width", "1");
+            _xmlWriter.WriteAttributeString("height", "1");
+            _xmlWriter.WriteAttributeString("fill", fill);
+            _xmlWriter.WriteEndElement(); // rect 
+        }
+    }
+
+    public void AddPath(Path2d path2d, RotationDirection rotationDirection)
+    {
+        var points = path2d.Points;
+        if (points.Count < 2)
+        {
+            return;
+        }
+        var previousPoint = points.First();
+        foreach (var point in points.Skip(1))
+        {
+            _xmlWriter.WriteStartElement("line");
+            _xmlWriter.WriteAttributeString("x1",$"{previousPoint.X}");
+            _xmlWriter.WriteAttributeString("y1",$"{previousPoint.Y}");
+            _xmlWriter.WriteAttributeString("x2",$"{point.X}");
+            _xmlWriter.WriteAttributeString("y2",$"{point.Y}");
+            _xmlWriter.WriteAttributeString("stroke", "black");
+            _xmlWriter.WriteAttributeString("stroke-width", "0.2");
+            _xmlWriter.WriteEndElement(); // line
+
+            var vector = point.Minus(previousPoint);
+            var polygonPoints = new []
+                {
+                    FractionalPoint.Make(previousPoint)
+                        .Plus(FractionalPoint.Make(vector, 0.3)),
+                    FractionalPoint.Make(previousPoint)
+                        .Plus(FractionalPoint.Make(vector, 0.3))
+                        .Plus(FractionalPoint.Make(vector.Rotate(rotationDirection.Opposite()), 0.3)),
+                    FractionalPoint.Make(previousPoint)
+                        .Plus(FractionalPoint.Make(vector, 0.8)),
+                };
+            var polygonPointsStr = string.Join(' ', polygonPoints.Select(p => $"{p.X},{p.Y}"));
+
+            _xmlWriter.WriteStartElement("polygon");
+            _xmlWriter.WriteAttributeString("points",polygonPointsStr);
+            _xmlWriter.WriteAttributeString("fill", "black");
+            _xmlWriter.WriteEndElement(); // polygon
+
+            previousPoint = point;
         }
     }
 

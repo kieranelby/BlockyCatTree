@@ -21,7 +21,7 @@ public class ArrayToSliceTests
             "#",
         };
         var slice = ArrayToSlice.Make(input, Convert);
-        Assert.That(slice.GetInclusiveBounds(), Is.EqualTo((new Point2d(0, 0), new Point2d(3, 2))));
+        Assert.That(slice.GetInclusiveBounds(), Is.EqualTo(new Bounds2d(new Point2d(0, 0), new Point2d(3, 2))));
         Assert.That(slice.Get(new Point2d(3, 2)), Is.EqualTo(1));
         Assert.That(slice.Get(new Point2d(2, 1)), Is.EqualTo(0));
         Assert.That(slice.Get(new Point2d(1, 2)), Is.Null);

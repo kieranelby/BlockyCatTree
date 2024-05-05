@@ -1,6 +1,7 @@
 ﻿using System.Xml.Linq;
 using BlockyCatTree.Pixel;
 using BlockyCatTree.Pixel.IO;
+using BlockyCatTree.Triangulate;
 
 namespace BlockCatTree.Test.Pixel.IO;
 
@@ -11,16 +12,13 @@ public class SvgWriterTests
     
     private double _scale;
     private MemoryStream _stream;
-    private (Point2d Min, Point2d Max) _bounds;
     private SvgWriter _uut;
 
     [SetUp]
     public void Setup()
     {
         _scale = 10.0;
-        _bounds = (new Point2d(5, 5), new Point2d(14, 24));
         _stream = new MemoryStream();
-        _uut = new SvgWriter(_stream, _bounds, _scale);
     }
 
     [TearDown]
@@ -46,6 +44,8 @@ public class SvgWriterTests
     [Test]
     public void TestEmptyCase()
     {
+        var bounds = new Bounds2d(new Point2d(5, 5), new Point2d(14, 24));
+        _uut = new SvgWriter(_stream, bounds, _scale);
         var xdoc = CloseAndReadBack();
         var root = xdoc.Root;
         Assert.That(root, Is.Not.Null);
@@ -75,6 +75,9 @@ public class SvgWriterTests
     [Test]
     public void TestSlice()
     {
+        // Check that it uses the bounds we specify, not the slice's
+        var bounds = new Bounds2d(new Point2d(5, 5), new Point2d(14, 24));
+        _uut = new SvgWriter(_stream, bounds, _scale);
         var slice = new Slice<int>();
         slice.Set(new Point2d(5, 5), 1);
         slice.Set(new Point2d(8, 6), 0);
@@ -104,20 +107,51 @@ public class SvgWriterTests
     }
 
     [Test]
+    public void TestPath()
+    {
+        var bounds = new Bounds2d(new Point2d(1, 1), new Point2d(4, 4));
+        _uut = new SvgWriter(_stream, bounds, _scale);
+        var path2d = new Path2d(
+        [
+            new(2, 1),
+            new(3, 1),
+            new(3, 2),
+            new(4, 2),
+            new(4, 3),
+            new(3, 3),
+            new(3, 4),
+            new(2, 4),
+            new(1, 4),
+            new(1, 3),
+            new(1, 2),
+            new(2, 2),
+            new(2, 1)
+        ]);
+        _uut.AddPath(path2d, RotationDirection.CounterClockwise);
+        var xdoc = CloseAndReadBack();
+        // Because all the hard work is done by the SVG transform the mapping is fairly obvious
+        var lines = xdoc.Descendants().Where(x => x.Name.Equals(XName.Get("line", ExpectedSvgNs))).ToList();
+        Assert.That(lines, Has.Count.EqualTo(12));
+        Assert.That(
+            lines
+                .Where(r => 
+                    r.Attribute(XName.Get("stroke"))?.Value == "black" &&
+                    r.Attribute(XName.Get("x1"))?.Value == "3" &&
+                    r.Attribute(XName.Get("y1"))?.Value == "1" &&
+                    r.Attribute(XName.Get("x2"))?.Value == "3" &&
+                    r.Attribute(XName.Get("y2"))?.Value == "2")
+                .ToList(), Has.Count.EqualTo(1));
+    }
+
+    [Test]
     [Explicit]
-    public void ExplicitTestExampleToFile()
+    public void ExplicitTestSliceExampleToFile()
     {
         var input = new []
         {
-            "     #  #",
-            "     # o",
-            "     #",
-            // remember we set our bounds to start at (5,5), hence all the padding
-            "",
-            "",
-            "",
-            "",
-            ""
+            "#  #",
+            "# o",
+            "#",
         };
         var slice = ArrayToSlice.Make<char,int>(input, c => c switch
         {
@@ -126,6 +160,8 @@ public class SvgWriterTests
             ' ' => null,
             _ => throw new Exception($"unexpected char '{c}'")
         });
+        var bounds = slice.GetInclusiveBounds();
+        _uut = new SvgWriter(_stream, bounds, _scale);
         _uut.AddSlice(slice, i => i switch
         {
             null => "red",
@@ -135,6 +171,47 @@ public class SvgWriterTests
         });
         Close();
         using var outStream = File.OpenWrite("E:/example01.svg");
+        outStream.SetLength(0);
+        _stream.CopyTo(outStream);
+        outStream.Close();
+    }
+
+    [Test]
+    [Explicit]
+    public void ExplicitTestSliceAndOutlineExampleToFile()
+    {
+        var input = new []
+        {
+            //   01234
+            "     ", // 4
+            " ##  ", // 3
+            " ### ", // 2
+            "  #  ", // 1
+            "     ", // 0
+            //   01234
+        };
+        var slice = ArrayToSlice.Make<char,int>(input, c => c switch
+        {
+            '#' => 1,
+            ' ' => null,
+            _ => throw new Exception($"unexpected char '{c}'")
+        });
+        var bounds = slice.GetInclusiveBounds();
+        _uut = new SvgWriter(_stream, bounds, _scale);
+        _uut.AddSlice(slice, i => i switch
+        {
+            null => "red",
+            1 => "green",
+            _ => throw new Exception($"unexpected payload '{i}'")
+        });
+        var outlineFinder = new OutlineFinder();
+        var outlines = outlineFinder.FindOutlines(slice);
+        Assume.That(outlines, Has.Count.EqualTo(1));
+        var outline = outlines[0];
+        Assume.That(outline.Exterior.IsEmpty, Is.False);
+        _uut.AddPath(outline.Exterior, RotationDirection.CounterClockwise);
+        Close();
+        using var outStream = File.OpenWrite("E:/example02.svg");
         outStream.SetLength(0);
         _stream.CopyTo(outStream);
         outStream.Close();

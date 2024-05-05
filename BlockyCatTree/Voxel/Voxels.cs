@@ -5,12 +5,23 @@ namespace BlockyCatTree.Voxel;
 /// <summary>
 /// A 3d world made up of little 1x1x1 blocks, organised by height.
 /// </summary>
-public class Voxels<TPayload> where TPayload : struct
+public class Voxels<TPayload> : IReadOnlyBooleanVoxels where TPayload : struct
 {
     private readonly Dictionary<Zed, Slice<TPayload>> _zedToSlice = new();
 
     public bool IsEmpty => _zedToSlice.Count == 0;
-    
+    public bool Exists(Point3d point3d) => Get(point3d).HasValue;
+
+    public IReadOnlyBooleanSlice GetReadOnlyBooleanSlice(Zed zed)
+    {
+        if (TryGetSlice(zed, out var maybeSlice))
+        {
+            return maybeSlice!;
+        }
+        // even an empty struct takes 1 byte, so might as well use a byte
+        return new Slice<byte>();
+    }
+
     public TPayload? Get(Point3d point3d)
     {
         return !_zedToSlice.TryGetValue(point3d.Zed, out var slice) ? null : slice.Get(point3d.Point2d);
@@ -37,6 +48,11 @@ public class Voxels<TPayload> where TPayload : struct
         {
             _zedToSlice.Remove(point3d.Zed);
         }
+    }
+
+    public void SetSlice(Zed zed, Slice<TPayload> slice)
+    {
+        _zedToSlice[zed] = slice;
     }
 
     public bool TryGetSlice(Zed zed, out Slice<TPayload>? maybeSlice) =>

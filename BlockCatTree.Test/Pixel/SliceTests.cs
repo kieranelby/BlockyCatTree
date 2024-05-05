@@ -24,7 +24,7 @@ public class SliceTests
     public void TestBasicOperations()
     {
         Assert.That(_uut.IsEmpty, Is.True);
-        Assert.That(_uut.GetInclusiveBounds(), Is.EqualTo((Point2d.Origin, Point2d.Origin)));
+        Assert.That(_uut.GetInclusiveBounds(), Is.EqualTo(new Bounds2d(Point2d.Origin, Point2d.Origin)));
         Assert.That(_uut.Get(_pointA), Is.EqualTo(null));
         _uut.Remove(_pointA);
         Assert.That(_uut.IsEmpty, Is.True);
@@ -33,7 +33,7 @@ public class SliceTests
         _uut.Set(_pointB, 10);
         _uut.Set(_pointC, 100);
         Assert.That(_uut.GetInclusiveBounds(), Is.EqualTo(
-            (new Point2d(1, 4), new Point2d(5, 20))
+            new Bounds2d(new Point2d(1, 4), new Point2d(5, 20))
         ));
         Assert.That(_uut.Get(_pointA), Is.EqualTo(0));
         Assert.That(_uut.Get(_pointB), Is.EqualTo(10));
@@ -43,12 +43,12 @@ public class SliceTests
         _uut.Remove(_pointA);
         Assert.That(_uut.IsEmpty, Is.False);
         Assert.That(_uut.GetInclusiveBounds(), Is.EqualTo(
-            (new Point2d(4, 4), new Point2d(5, 7))
+            new Bounds2d(new Point2d(4, 4), new Point2d(5, 7))
         ));
         Assert.That(_uut.Get(_pointA), Is.EqualTo(null));
         _uut.Remove(_pointB);
         _uut.Remove(_pointC);
         Assert.That(_uut.IsEmpty, Is.True);
-        Assert.That(_uut.GetInclusiveBounds(), Is.EqualTo((Point2d.Origin, Point2d.Origin)));
+        Assert.That(_uut.GetInclusiveBounds(), Is.EqualTo(new Bounds2d(Point2d.Origin, Point2d.Origin)));
     }
 }
