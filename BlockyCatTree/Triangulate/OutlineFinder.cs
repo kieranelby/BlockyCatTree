@@ -2,9 +2,9 @@
 
 namespace BlockyCatTree.Triangulate;
 
-public class OutlineFinder
+public static class OutlineFinder
 {
-    public List<Outline> FindOutlines(IReadOnlyBooleanSlice slice)
+    public static List<Outline> FindOutlines(IReadOnlyBooleanSlice slice)
     {
         var outlines = new List<Outline>();
         var startingPoint = FindStartingPoint(slice);
@@ -23,11 +23,9 @@ public class OutlineFinder
         Path2d exterior;
         var position = startingPoint.Value;
         path2d.Add(position);
-        Console.WriteLine($"at {position}");
         while (true)
         {
             position = position.Plus(direction);
-            Console.WriteLine($"moved {direction} to {position}");
             path2d.Add(position);
             if (position == startingPoint)
             {
@@ -41,9 +39,7 @@ public class OutlineFinder
                 {
                     throw new Exception($"failed to find which way to go at {position} after {direction}");
                 }
-                Console.WriteLine($"considering {candidateDirection} ({i}-th choice)");
                 var vectorToCheck = ChooseVectorToCheck(candidateDirection, rotationDirection);
-                Console.WriteLine($"checking {vectorToCheck} away at {position.Plus(vectorToCheck)}");
                 if (slice.Exists(position.Plus(vectorToCheck)))
                 {
                     break;
@@ -57,7 +53,7 @@ public class OutlineFinder
         return outlines;
     }
 
-    private Point2d ChooseVectorToCheck(Point2d direction, RotationDirection rotationDirection)
+    private static Point2d ChooseVectorToCheck(Point2d direction, RotationDirection rotationDirection)
     {
         switch (rotationDirection)
         {
@@ -82,7 +78,7 @@ public class OutlineFinder
         }
     }
 
-    private Point2d? FindStartingPoint(IReadOnlyBooleanSlice slice)
+    private static Point2d? FindStartingPoint(IReadOnlyBooleanSlice slice)
     {
         foreach (var point2d in slice.GetInclusiveBounds().IterateRowMajor())
         {

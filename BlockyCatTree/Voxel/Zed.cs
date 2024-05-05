@@ -11,12 +11,4 @@ public readonly record struct Zed(int Value) : IComparable<Zed>
     {
         return Value.CompareTo(other.Value);
     }
-
-    public static IEnumerable<Zed> InclusiveRange((Zed Min, Zed Max) bounds)
-    {
-        for (var i = bounds.Min.Value; i <= bounds.Max.Value; i++)
-        {
-            yield return new Zed(i);
-        }
-    }
 }

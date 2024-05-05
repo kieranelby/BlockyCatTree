@@ -29,7 +29,7 @@ public class ArrayToVoxelTests
             }
         };
         var voxels = ArrayToVoxels.Make(input, Convert);
-        Assert.That(voxels.GetZedInclusiveBounds(), Is.EqualTo((new Zed(0), new Zed(1))));
+        Assert.That(voxels.GetInclusiveZedBounds(), Is.EqualTo(new ZedBounds(new Zed(0), new Zed(1))));
         Assert.That(voxels.TryGetSlice(new Zed(1), out var upperSlice), Is.True);
         Assert.That(voxels.TryGetSlice(new Zed(0), out var lowerSlice), Is.True);
         Assert.That(upperSlice, Is.Not.Null);

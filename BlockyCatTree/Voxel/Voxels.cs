@@ -14,12 +14,7 @@ public class Voxels<TPayload> : IReadOnlyBooleanVoxels where TPayload : struct
 
     public IReadOnlyBooleanSlice GetReadOnlyBooleanSlice(Zed zed)
     {
-        if (TryGetSlice(zed, out var maybeSlice))
-        {
-            return maybeSlice!;
-        }
-        // even an empty struct takes 1 byte, so might as well use a byte
-        return new Slice<byte>();
+        return TryGetSlice(zed, out var maybeSlice) ? maybeSlice! : EmptyReadOnlyBooleanSlice.Instance;
     }
 
     public TPayload? Get(Point3d point3d)
@@ -58,8 +53,8 @@ public class Voxels<TPayload> : IReadOnlyBooleanVoxels where TPayload : struct
     public bool TryGetSlice(Zed zed, out Slice<TPayload>? maybeSlice) =>
         _zedToSlice.TryGetValue(zed, out maybeSlice);
 
-    public (Zed Min, Zed Max) GetZedInclusiveBounds() =>
+    public ZedBounds GetInclusiveZedBounds() =>
         IsEmpty
-            ? (Zed.Origin, Zed.Origin)
-            : (_zedToSlice.Keys.Min(), _zedToSlice.Keys.Max());
+            ? new ZedBounds(Zed.Origin, Zed.Origin)
+            : new ZedBounds(_zedToSlice.Keys.Min(), _zedToSlice.Keys.Max());
 }

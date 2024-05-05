@@ -204,8 +204,7 @@ public class SvgWriterTests
             1 => "green",
             _ => throw new Exception($"unexpected payload '{i}'")
         });
-        var outlineFinder = new OutlineFinder();
-        var outlines = outlineFinder.FindOutlines(slice);
+        var outlines = OutlineFinder.FindOutlines(slice);
         Assume.That(outlines, Has.Count.EqualTo(1));
         var outline = outlines[0];
         Assume.That(outline.Exterior.IsEmpty, Is.False);

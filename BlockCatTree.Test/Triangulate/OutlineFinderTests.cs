@@ -6,12 +6,9 @@ namespace BlockCatTree.Test.Triangulate;
 
 public class OutlineFinderTests
 {
-    private OutlineFinder _uut;
-
     [SetUp]
     public void Setup()
     {
-        _uut = new OutlineFinder();
     }
 
     private static int? Convert(char c) => c switch
@@ -35,7 +32,7 @@ public class OutlineFinderTests
         //   01234
         };
         var slice = ArrayToSlice.Make(input, Convert);
-        var outlines = _uut.FindOutlines(slice);
+        var outlines = OutlineFinder.FindOutlines(slice);
         Assert.That(outlines, Has.Count.EqualTo(1));
         var outline = outlines[0];
         Assert.That(outline.Interior.IsEmpty, Is.True);

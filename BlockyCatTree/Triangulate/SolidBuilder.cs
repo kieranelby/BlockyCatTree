@@ -1,4 +1,5 @@
 using BlockyCatTree.Mesh;
+using BlockyCatTree.Pixel;
 using BlockyCatTree.Voxel;
 
 namespace BlockyCatTree.Triangulate;
@@ -39,9 +40,40 @@ public class SolidBuilder
         return index;
     }
 
+    public void AddTopFace(Zed zed, Point2d point2d)
+    {
+        var vA = new Point3d(point2d.X + 0, point2d.Y + 0, zed.Value);
+        var vB = new Point3d(point2d.X + 1, point2d.Y + 0, zed.Value);
+        var vC = new Point3d(point2d.X + 1, point2d.Y + 1, zed.Value);
+        var vD = new Point3d(point2d.X + 0, point2d.Y + 1, zed.Value);
+        AddTriangle(vA, vB, vC);
+        AddTriangle(vA, vC, vD);
+    }
+
+    public void AddBottomFace(Zed zed, Point2d point2d)
+    {
+        var vA = new Point3d(point2d.X + 0, point2d.Y + 0, zed.Value);
+        var vB = new Point3d(point2d.X + 1, point2d.Y + 0, zed.Value);
+        var vC = new Point3d(point2d.X + 1, point2d.Y + 1, zed.Value);
+        var vD = new Point3d(point2d.X + 0, point2d.Y + 1, zed.Value);
+        AddTriangle(vA, vD, vC);
+        AddTriangle(vA, vC, vB);
+    }
+    
     public Solid Build()
     {
         var meshVertices = _blockVertices.Select(v => new Vertex(v.X, v.Y, v.Z)).ToList();
         return new Solid(_objectId, meshVertices, _triangles);
+    }
+
+    public void AddExteriorSideFace(Zed zed, Point2d point1, Point2d point2)
+    {
+        var vA = new Point3d(point1.X, point1.Y, zed.Value);
+        var vB = new Point3d(point2.X, point2.Y, zed.Value);
+        var vC = new Point3d(point2.X, point2.Y, zed.Value + 1);
+        var vD = new Point3d(point1.X, point1.Y, zed.Value + 1);
+        // TODO - is this right?
+        AddTriangle(vA, vB, vC);
+        AddTriangle(vA, vC, vD);
     }
 }
