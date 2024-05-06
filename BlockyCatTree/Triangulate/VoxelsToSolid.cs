@@ -49,8 +49,7 @@ public static class VoxelsToSolid
         var outlines = OutlineFinder.FindOutlines(slice);
         foreach (var outline in outlines)
         {
-            AddWalls(sb, zed, outline.Exterior);
-            // TODO - interior
+            AddWalls(sb, zed, outline);
         }
     }
     
@@ -60,6 +59,10 @@ public static class VoxelsToSolid
         {
             return;
         }
+        // Surprisingly I don't think we need to care about the direction of the path,
+        // as long as when generating them we always do counter-clockwise for exterior
+        // and clockwise for interior ...
+        // TODO ... OR DO WE - GETTING NON-MANIFOLD EDGES SOMEWHERE
         var previousPoint = path2d.Points.First();
         foreach (var point in path2d.Points.Skip(1))
         {

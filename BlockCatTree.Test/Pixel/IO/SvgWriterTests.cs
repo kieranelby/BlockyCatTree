@@ -126,8 +126,8 @@ public class SvgWriterTests
             new(1, 2),
             new(2, 2),
             new(2, 1)
-        ]);
-        _uut.AddPath(path2d, RotationDirection.CounterClockwise);
+        ], RotationDirection.CounterClockwise);
+        _uut.AddPath(path2d);
         var xdoc = CloseAndReadBack();
         // Because all the hard work is done by the SVG transform the mapping is fairly obvious
         var lines = xdoc.Descendants().Where(x => x.Name.Equals(XName.Get("line", ExpectedSvgNs))).ToList();
@@ -178,17 +178,17 @@ public class SvgWriterTests
 
     [Test]
     [Explicit]
-    public void ExplicitTestSliceAndOutlineExampleToFile()
+    public void ExplicitTestSliceAndTrickySingleOutlineExampleToFile()
     {
         var input = new []
         {
-            //   01234
-            "     ", // 4
-            " ##  ", // 3
-            " ### ", // 2
-            "  #  ", // 1
-            "     ", // 0
-            //   01234
+            //123456789
+            "#   # #   ", // 4
+            " ## ##### ", // 3
+            " #### ##  ", // 2
+            "  ##  ### ", // 1
+            " ####  #  ", // 0
+            //123456789
         };
         var slice = ArrayToSlice.Make<char,int>(input, c => c switch
         {
@@ -204,13 +204,59 @@ public class SvgWriterTests
             1 => "green",
             _ => throw new Exception($"unexpected payload '{i}'")
         });
-        var outlines = OutlineFinder.FindOutlines(slice);
-        Assume.That(outlines, Has.Count.EqualTo(1));
-        var outline = outlines[0];
-        Assume.That(outline.Exterior.IsEmpty, Is.False);
-        _uut.AddPath(outline.Exterior, RotationDirection.CounterClockwise);
+        var outline = OutlineFinder.FindOutline(slice, RotationDirection.Clockwise);
+        Assume.That(outline, Is.Not.Null);
+        _uut.AddPath(outline!);
         Close();
         using var outStream = File.OpenWrite("E:/example02.svg");
+        outStream.SetLength(0);
+        _stream.CopyTo(outStream);
+        outStream.Close();
+    }
+    
+    [Test]
+    [Explicit]
+    public void ExplicitTestSliceAndComplexMultipleOutlinesExampleToFile()
+    {
+        var input = new []
+        {
+            //12345678901
+            "##   X X X  ",  // 3
+            "#  XXXXXXXX ",  // 2
+            "  XX      XX",  // 1
+            " XX   WW  XX",  // 0
+            " XX  WWWW XX",  // 9
+            " XX       XX",  // 8
+            "XXX  MMMM  XX", // 7
+            "XXX  M   M X ", // 6
+            "XXX  M 8 M X ", // 5
+            "XXX  M   M X ", // 4
+            "XXX  MMMM  XX", // 3
+            "XXX  MM   XX ", // 2
+            " XX     XXX",   // 1
+            "  XXXXXXXX ",   // 0
+            //12345678901
+        };
+        var slice = ArrayToSlice.Make<char,char>(input, c => c == ' ' ? null : c);
+        var bounds = slice.GetInclusiveBounds();
+        _uut = new SvgWriter(_stream, bounds, _scale);
+        _uut.AddSlice(slice, c => c switch
+        {
+            null => "gray",
+            '#' => "green",
+            'X' => "red",
+            'M' => "blue",
+            '8' => "yellow",
+            'W' => "cyan",
+            _ => throw new Exception($"unexpected payload '{c}'")
+        });
+        var outlines = OutlineFinder.FindOutlines(slice);
+        foreach (var outline in outlines)
+        {
+            _uut.AddPath(outline);
+        }
+        Close();
+        using var outStream = File.OpenWrite("E:/example03.svg");
         outStream.SetLength(0);
         _stream.CopyTo(outStream);
         outStream.Close();

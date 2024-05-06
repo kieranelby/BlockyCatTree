@@ -89,10 +89,103 @@ public class VoxelsToSolidTests
         BasicThreeEmEffWriter.Write("E:/example03.3mf", model);
     }
 
+    [Test]
+    [Explicit]
+    public void ExplicitTestDubiousExampleToFile()
+    {
+        var input = new []
+        {
+            new []
+            {
+                //123456789
+                "         #", // 4
+                "#         ", // 3
+                "          ", // 2
+                "          ", // 1
+                "#         ", // 0
+                //123456789
+            },
+            new []
+            {
+            //123456789
+            "#   # #   ", // 4
+            " ## ##### ", // 3
+            " #### ##  ", // 2
+            "  ##  ### ", // 1
+            " ####  #  ", // 0
+            //123456789
+            }
+        };
+        var voxels = ArrayToVoxels.Make(input, Convert);
+        var objectId = ObjectId.FirstId;
+        var solid = VoxelsToSolid.Triangulate(objectId, voxels);
+        var buildItem = new BuildItem(objectId, Matrix4x4.Identity);
+        var model = new Model([solid], [buildItem]);
+        BasicThreeEmEffWriter.Write("E:/example04.3mf", model);
+    }
+
+    [Test]
+    [Explicit]
+    public void ExplicitTestComplexExampleToFile()
+    {
+        var input = new []
+        {
+            new []
+            {
+                //123456789012345
+                "                ",// 6
+                " ##   X  X X    ",// 5
+                " #  XXXXXXXXX   ",// 4
+                "   XX       XX  ",// 3
+                "  XX   WWW  XX  ",// 2
+                "  XX  WWWWW XX  ",// 1
+                "  XX        XX  ",// 0
+                " XXX  MMMMM  XX ",// 9
+                " XXX  M   MM X  ",// 8
+                " XXX  M    M X  ",// 7
+                " XXX  M  8 M X  ",// 6
+                " XXX  M    M X  ",// 5
+                " XXX  MMMMMM XX ",// 4
+                " XXX  MMM    X  ",// 3
+                "  XX      XXXX  ",// 2
+                "   XXXXXXXXX    ",// 1
+                "                ",// 0
+                //123456789012345
+            },
+            new []
+            {
+                //12345678901234
+                "##############  ",// 6
+                "############### ",// 5
+                "################",// 4
+                "################",// 3
+                "################",// 2
+                "################",// 1
+                "################",// 0
+                "################",// 9
+                "################",// 8
+                "################",// 7
+                "################",// 6
+                "################",// 5
+                "################",// 4
+                "################",// 3
+                "############### ",// 2
+                " #############  ",// 1
+                "  ###########   ",// 0
+                //12345678901234
+            }
+        };
+        var voxels = ArrayToVoxels.Make(input, Convert);
+        var objectId = ObjectId.FirstId;
+        var solid = VoxelsToSolid.Triangulate(objectId, voxels);
+        var buildItem = new BuildItem(objectId, Matrix4x4.Identity);
+        var model = new Model([solid], [buildItem]);
+        BasicThreeEmEffWriter.Write("E:/example05.3mf", model);
+    }
+
     private static int? Convert(char c) => c switch
     {
-        '#' => 1,
         ' ' => null,
-        _ => throw new Exception($"unexpected char '{c}'")
+        _ => 1
     };
 }

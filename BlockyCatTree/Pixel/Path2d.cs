@@ -1,8 +1,10 @@
-﻿namespace BlockyCatTree.Pixel;
+﻿using BlockyCatTree.Triangulate;
 
-public record Path2d(List<Point2d> Points)
+namespace BlockyCatTree.Pixel;
+
+public record Path2d(List<Point2d> Points, RotationDirection RotationDirection)
 {
-    public Path2d() : this([])
+    public Path2d(RotationDirection rotationDirection) : this([], rotationDirection)
     {
     }
 

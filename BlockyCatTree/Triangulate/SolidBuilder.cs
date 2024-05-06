@@ -72,7 +72,6 @@ public class SolidBuilder
         var vB = new Point3d(point2.X, point2.Y, zed.Value);
         var vC = new Point3d(point2.X, point2.Y, zed.Value + 1);
         var vD = new Point3d(point1.X, point1.Y, zed.Value + 1);
-        // TODO - is this right?
         AddTriangle(vA, vB, vC);
         AddTriangle(vA, vC, vD);
     }
