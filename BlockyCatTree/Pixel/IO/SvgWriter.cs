@@ -81,7 +81,7 @@ public class SvgWriter : IDisposable
     public void AddPath(Path2d path2d)
     {
         var points = path2d.Points;
-        var rotationDirection = path2d.RotationDirection;
+        var rotationDirection = RotationDirection.Clockwise;
         if (points.Count < 2)
         {
             return;

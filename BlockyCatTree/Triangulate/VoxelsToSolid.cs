@@ -23,7 +23,6 @@ public static class VoxelsToSolid
     private static void AddTopAndBottomFaces(
         SolidBuilder sb, Zed zed, IReadOnlyBooleanSlice slice, IReadOnlyBooleanSlice sliceBelow)
     {
-        // Do the horizontal triangles first (they're easier ... I think?)
         var bounds = slice.GetInclusiveBounds().Combine(sliceBelow.GetInclusiveBounds());
         foreach (var point2d in bounds.IterateRowMajor())
         {
@@ -59,10 +58,6 @@ public static class VoxelsToSolid
         {
             return;
         }
-        // Surprisingly I don't think we need to care about the direction of the path,
-        // as long as when generating them we always do counter-clockwise for exterior
-        // and clockwise for interior ...
-        // TODO ... OR DO WE - GETTING NON-MANIFOLD EDGES SOMEWHERE
         var previousPoint = path2d.Points.First();
         foreach (var point in path2d.Points.Skip(1))
         {

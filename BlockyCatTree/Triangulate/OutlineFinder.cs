@@ -2,7 +2,6 @@
 
 namespace BlockyCatTree.Triangulate;
 
-
 /// <summary>
 /// Knows how to find multiple continuous regions and draw paths around them,
 /// including regions with holes and even nested regions. 
@@ -18,7 +17,7 @@ public static class OutlineFinder
 
     private static void FindOutlinesInner(ICollection<Path2d> accumulatedPaths, IReadOnlyBooleanSlice slice, RotationDirection rotationDirection)
     {
-        var exterior = FindOutline(slice, RotationDirection.CounterClockwise);
+        var exterior = FindOutline(slice, rotationDirection);
         if (exterior == null)
         {
             return;

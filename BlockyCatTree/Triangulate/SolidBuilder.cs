@@ -5,8 +5,8 @@ using BlockyCatTree.Voxel;
 namespace BlockyCatTree.Triangulate;
 
 /// <summary>
-/// A little help with building a solid, just helps avoid duplicate
-/// vertices and does the int to double conversion at the end. 
+/// A little help with building a solid, avoids duplicate vertices,
+/// does quad to triangle, and the int to double conversion at the end. 
 /// </summary>
 public class SolidBuilder
 {
@@ -72,6 +72,8 @@ public class SolidBuilder
         var vB = new Point3d(point2.X, point2.Y, zed.Value);
         var vC = new Point3d(point2.X, point2.Y, zed.Value + 1);
         var vD = new Point3d(point1.X, point1.Y, zed.Value + 1);
+        // We don't need another version with the opposite normal, since our paths go
+        // counter-clockwise for exterior outline and clockwise for interior outline.
         AddTriangle(vA, vB, vC);
         AddTriangle(vA, vC, vD);
     }

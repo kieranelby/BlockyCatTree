@@ -2,6 +2,12 @@
 
 namespace BlockyCatTree.Triangulate;
 
+/// <summary>
+/// A view onto a slice where, for the path represented by the <see cref="InteriorTester"/>:
+///  - nothing outside the path exists
+///  - everything inside the path is the opposite of the underlying slice (exists if it doesn't and vice versa)
+/// Useful for finding holes in regions (and nested regions).
+/// </summary>
 public class SliceViewWithOnlyInvertedInterior(IReadOnlyBooleanSlice underlying, InteriorTester interiorTester)
     : SliceView(underlying, interiorTester, Combine)
 {
@@ -11,6 +17,12 @@ public class SliceViewWithOnlyInvertedInterior(IReadOnlyBooleanSlice underlying,
     }
 }
 
+/// <summary>
+/// A view onto a slice where, for the path represented by the <see cref="InteriorTester"/>:
+///  - nothing inside the path exists
+///  - everything outside the path is the same as normal
+/// Useful for finding multiple regions.
+/// </summary>
 public class SliceViewWithoutInterior(IReadOnlyBooleanSlice underlying, InteriorTester interiorTester)
     : SliceView(underlying, interiorTester, Combine)
 {
