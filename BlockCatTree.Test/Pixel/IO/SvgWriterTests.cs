@@ -12,7 +12,7 @@ public class SvgWriterTests
     
     private double _scale;
     private MemoryStream _stream;
-    private SvgWriter _uut;
+    private SvgWriter? _uut;
 
     [SetUp]
     public void Setup()
@@ -24,13 +24,13 @@ public class SvgWriterTests
     [TearDown]
     public void Teardown()
     {
-        _uut.Dispose();
+        _uut?.Dispose();
         _stream.Dispose();
     }
 
     private void Close()
     {
-        _uut.Close();
+        _uut?.Close();
         _stream.SetLength(_stream.Position);
         _stream.Seek(0L, SeekOrigin.Begin);
     }
