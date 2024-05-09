@@ -107,6 +107,7 @@ public static class OutlineFinder
                     ( 0,-1) => new Point2d(-1, -1),
                     _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
                 };
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(rotationDirection), rotationDirection, null);
         }

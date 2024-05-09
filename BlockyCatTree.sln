@@ -4,8 +4,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlockyCatTree", "BlockyCatT
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlockCatTree.Test", "BlockCatTree.Test\BlockCatTree.Test.csproj", "{95F2D77E-B9E9-4BB3-940A-09602D86E1C7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlockyCatTree.UI", "BlockyCatTree.UI\BlockyCatTree.UI.csproj", "{DCE34EE6-4693-4D81-AB6D-DEAD58F0AC91}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,9 +18,5 @@ Global
 		{95F2D77E-B9E9-4BB3-940A-09602D86E1C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{95F2D77E-B9E9-4BB3-940A-09602D86E1C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{95F2D77E-B9E9-4BB3-940A-09602D86E1C7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DCE34EE6-4693-4D81-AB6D-DEAD58F0AC91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DCE34EE6-4693-4D81-AB6D-DEAD58F0AC91}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DCE34EE6-4693-4D81-AB6D-DEAD58F0AC91}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DCE34EE6-4693-4D81-AB6D-DEAD58F0AC91}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
