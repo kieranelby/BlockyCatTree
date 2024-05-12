@@ -250,7 +250,7 @@ public class SvgWriterTests
             'W' => "cyan",
             _ => throw new Exception($"unexpected payload '{c}'")
         });
-        var outlines = OutlineFinder.FindOutlines(slice);
+        var outlines = OutlineFinder.FindAllPaths(slice);
         foreach (var outline in outlines)
         {
             _uut.AddPath(outline);

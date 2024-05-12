@@ -11,4 +11,6 @@ public readonly record struct Zed(int Value) : IComparable<Zed>
     {
         return Value.CompareTo(other.Value);
     }
+
+    public Zed Minus(int v) => new(Value - v);
 }

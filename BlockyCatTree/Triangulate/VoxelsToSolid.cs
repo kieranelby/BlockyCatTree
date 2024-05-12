@@ -45,7 +45,7 @@ public static class VoxelsToSolid
 
     private static void AddWalls(SolidBuilder sb, Zed zed, IReadOnlyBooleanSlice slice)
     {
-        var outlines = OutlineFinder.FindOutlines(slice);
+        var outlines = OutlineFinder.FindAllPaths(slice);
         foreach (var outline in outlines)
         {
             AddWalls(sb, zed, outline);

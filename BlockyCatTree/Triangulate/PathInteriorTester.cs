@@ -6,11 +6,11 @@ namespace BlockyCatTree.Triangulate;
 /// Knows how to test (reasonably efficiently) if a point is inside a
 /// closed path or not.
 /// </summary>
-public class InteriorTester
+public class PathInteriorTester
 {
     private readonly Dictionary<int, List<int>> _yToXTransitions = new();
     
-    public InteriorTester(Path2d path2d)
+    public PathInteriorTester(Path2d path2d)
     {
         if (path2d.Points.Count < 3)
         {
@@ -62,5 +62,24 @@ public class InteriorTester
             inside = !inside;
         }
         return inside;
+    }
+
+    public IEnumerable<Point2d> IterateRowMajor()
+    {
+        var minY = _yToXTransitions.Keys.Min();
+        var maxY = _yToXTransitions.Keys.Max();
+        for (var y = minY; y <= maxY; y++)
+        {
+            var transitions = _yToXTransitions[y];
+            for (var i = 0; i < transitions.Count; i += 2)
+            {
+                var inX = transitions[i + 0];
+                var outX = transitions[i + 1];
+                for (var x = inX; x < outX; x++)
+                {
+                    yield return new Point2d(x, y);
+                }
+            }
+        }
     }
 }

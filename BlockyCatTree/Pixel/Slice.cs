@@ -40,4 +40,23 @@ public class Slice<TPayload> : IReadOnlyBooleanSlice where TPayload : struct
                     _pointToPayload.Keys.Max(p => p.Y)
                 )
             );
+
+    public void CopyPointsTo(List<Point2d> destination)
+    {
+        destination.AddRange(_pointToPayload.Keys);
+    }
+
+    public Slice<TNewPayload> Clone<TNewPayload>(Func<TPayload, TNewPayload?> mapFunction) where TNewPayload : struct
+    {
+        var copy = new Slice<TNewPayload>();
+        foreach (var entry in _pointToPayload)
+        {
+            var newValue = mapFunction(entry.Value);
+            if (newValue.HasValue)
+            {
+                copy._pointToPayload.Add(entry.Key, newValue.Value);
+            }
+        }
+        return copy;
+    }
 }

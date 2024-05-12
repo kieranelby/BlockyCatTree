@@ -3,13 +3,13 @@
 namespace BlockyCatTree.Triangulate;
 
 /// <summary>
-/// A view onto a slice where, for the path represented by the <see cref="InteriorTester"/>:
+/// A view onto a slice where, for the path represented by the <see cref="PathInteriorTester"/>:
 ///  - nothing outside the path exists
 ///  - everything inside the path is the opposite of the underlying slice (exists if it doesn't and vice versa)
 /// Useful for finding holes in regions (and nested regions).
 /// </summary>
-public class SliceViewWithOnlyInvertedInterior(IReadOnlyBooleanSlice underlying, InteriorTester interiorTester)
-    : SliceView(underlying, interiorTester, Combine)
+public class SliceViewWithOnlyInvertedInterior(IReadOnlyBooleanSlice underlying, PathInteriorTester pathInteriorTester)
+    : SliceView(underlying, pathInteriorTester, Combine)
 {
     private static bool Combine(bool underlyingExists, bool isInside)
     {
@@ -18,13 +18,13 @@ public class SliceViewWithOnlyInvertedInterior(IReadOnlyBooleanSlice underlying,
 }
 
 /// <summary>
-/// A view onto a slice where, for the path represented by the <see cref="InteriorTester"/>:
+/// A view onto a slice where, for the path represented by the <see cref="PathInteriorTester"/>:
 ///  - nothing inside the path exists
 ///  - everything outside the path is the same as normal
 /// Useful for finding multiple regions.
 /// </summary>
-public class SliceViewWithoutInterior(IReadOnlyBooleanSlice underlying, InteriorTester interiorTester)
-    : SliceView(underlying, interiorTester, Combine)
+public class SliceViewWithoutInterior(IReadOnlyBooleanSlice underlying, PathInteriorTester pathInteriorTester)
+    : SliceView(underlying, pathInteriorTester, Combine)
 {
     private static bool Combine(bool underlyingExists, bool isInside)
     {
@@ -39,20 +39,20 @@ public class SliceViewWithoutInterior(IReadOnlyBooleanSlice underlying, Interior
 public class SliceView : IReadOnlyBooleanSlice
 {
     private readonly IReadOnlyBooleanSlice _underlying;
-    private readonly InteriorTester _interiorTester;
+    private readonly PathInteriorTester _pathInteriorTester;
     private readonly Func<bool, bool, bool> _combineFunction;
 
-    public SliceView(IReadOnlyBooleanSlice underlying, InteriorTester interiorTester, Func<bool,bool,bool> combineFunction)
+    public SliceView(IReadOnlyBooleanSlice underlying, PathInteriorTester pathInteriorTester, Func<bool,bool,bool> combineFunction)
     {
         _underlying = underlying;
-        _interiorTester = interiorTester;
+        _pathInteriorTester = pathInteriorTester;
         _combineFunction = combineFunction;
     }
     
     public bool Exists(Point2d point2d)
     {
         var underlyingExists = _underlying.Exists(point2d);
-        var isInside = _interiorTester.Inside(point2d);
+        var isInside = _pathInteriorTester.Inside(point2d);
         return _combineFunction(underlyingExists, isInside);
     }
 

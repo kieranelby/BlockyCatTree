@@ -30,4 +30,6 @@ public readonly record struct Point2d(int X, int Y)
                 throw new ArgumentOutOfRangeException(nameof(rotationDirection), rotationDirection, null);
         }
     }
+
+    public Point2d Scale(int multiplier) => new(X * multiplier, Y * multiplier);
 }

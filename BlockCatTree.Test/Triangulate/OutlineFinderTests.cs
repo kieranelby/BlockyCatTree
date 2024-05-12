@@ -32,7 +32,7 @@ public class OutlineFinderTests
             //1234
         };
         var slice = ArrayToSlice.Make(input, Convert);
-        var outlines = OutlineFinder.FindOutlines(slice);
+        var outlines = OutlineFinder.FindAllPaths(slice);
         Assert.That(outlines, Has.Count.EqualTo(1));
         var exterior = outlines[0];
         Assert.That(exterior.RotationDirection, Is.EqualTo(RotationDirection.CounterClockwise));
@@ -125,7 +125,7 @@ public class OutlineFinderTests
             //1234
         };
         var slice = ArrayToSlice.Make(input, Convert);
-        var outlines = OutlineFinder.FindOutlines(slice);
+        var outlines = OutlineFinder.FindAllPaths(slice);
         Assert.That(outlines, Has.Count.EqualTo(3));
         // We assume we find the lower region first,
         // or if tied, the left-most
@@ -178,7 +178,7 @@ public class OutlineFinderTests
             //1234
         };
         var slice = ArrayToSlice.Make(input, Convert);
-        var outlines = OutlineFinder.FindOutlines(slice);
+        var outlines = OutlineFinder.FindAllPaths(slice);
         // We assume it returns the outside path first, then the inside path,
         // and that inside paths run in the opposite direction
         Assert.That(outlines, Has.Count.EqualTo(2));

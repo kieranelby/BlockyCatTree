@@ -8,27 +8,42 @@ namespace BlockyCatTree.Triangulate;
 /// </summary>
 public static class OutlineFinder
 {
-    public static List<Path2d> FindOutlines(IReadOnlyBooleanSlice slice)
+    public static List<Path2d> FindAllPaths(IReadOnlyBooleanSlice slice, bool includeInteriors = true)
     {
-        var accumulatedPaths = new List<Path2d>();
-        FindOutlinesInner(accumulatedPaths, slice, RotationDirection.CounterClockwise);
-        return accumulatedPaths;
+        var outlines = FindOutlines(slice, includeInteriors);
+        return outlines.SelectMany(o => o.ToPaths()).ToList();
     }
 
-    private static void FindOutlinesInner(ICollection<Path2d> accumulatedPaths, IReadOnlyBooleanSlice slice, RotationDirection rotationDirection)
+    public static IEnumerable<Outline> FindOutlines(IReadOnlyBooleanSlice slice, bool includeInteriors = true)
     {
-        var exterior = FindOutline(slice, rotationDirection);
-        if (exterior == null)
+        return FindNestedOutlines(slice, includeInteriors).SelectMany(no => no.Flatten());
+    }
+
+    private static List<NestedOutline> FindNestedOutlines(IReadOnlyBooleanSlice slice, bool includeInteriors = true, RotationDirection rotationDirection = RotationDirection.CounterClockwise)
+    {
+        var outlines = new List<NestedOutline>();
+        var remainingSlice = slice;
+        while (true)
         {
-            return;
+            var path = FindOutline(remainingSlice, rotationDirection);
+            if (path == null)
+            {
+                break;
+            }
+            var interiorTester = new PathInteriorTester(path);
+            var sliceViewWithoutInterior = new SliceViewWithoutInterior(remainingSlice, interiorTester);
+            if (!includeInteriors)
+            {
+                outlines.Add(new NestedOutline(path, []));
+            }
+            else
+            {
+                var sliceViewWithOnlyInvertedInterior = new SliceViewWithOnlyInvertedInterior(remainingSlice, interiorTester);
+                outlines.Add(new NestedOutline(path, FindNestedOutlines(sliceViewWithOnlyInvertedInterior, includeInteriors, rotationDirection.Opposite())));
+            }
+            remainingSlice = sliceViewWithoutInterior;
         }
-        accumulatedPaths.Add(exterior);
-        var interiorTester = new InteriorTester(exterior);
-        var sliceViewWithoutInterior = new SliceViewWithoutInterior(slice, interiorTester);
-        var sliceViewWithOnlyInvertedInterior = new SliceViewWithOnlyInvertedInterior(slice, interiorTester);
-        FindOutlinesInner(accumulatedPaths, sliceViewWithOnlyInvertedInterior, rotationDirection.Opposite());
-        // ReSharper disable once TailRecursiveCall
-        FindOutlinesInner(accumulatedPaths, sliceViewWithoutInterior, rotationDirection);
+        return outlines;
     }
 
     public static Path2d? FindOutline(IReadOnlyBooleanSlice slice, RotationDirection rotationDirection)

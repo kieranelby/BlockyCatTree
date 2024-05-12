@@ -8,4 +8,5 @@ public interface IReadOnlyBooleanVoxels
     bool Exists(Point3d point3d);
     IReadOnlyBooleanSlice GetReadOnlyBooleanSlice(Zed zed);
     ZedBounds GetInclusiveZedBounds();
+    Bounds3d GetInclusiveBounds();
 }

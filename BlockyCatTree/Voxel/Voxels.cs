@@ -53,8 +53,41 @@ public class Voxels<TPayload> : IReadOnlyBooleanVoxels where TPayload : struct
     public bool TryGetSlice(Zed zed, out Slice<TPayload>? maybeSlice) =>
         _zedToSlice.TryGetValue(zed, out maybeSlice);
 
+    public Slice<TPayload> GetOrCreateSlice(Zed zed)
+    {
+        if (!TryGetSlice(zed, out var slice))
+        {
+            slice = new Slice<TPayload>();
+            SetSlice(zed, slice);
+        }
+        return slice!;
+    }
+
     public ZedBounds GetInclusiveZedBounds() =>
         IsEmpty
             ? new ZedBounds(Zed.Origin, Zed.Origin)
             : new ZedBounds(_zedToSlice.Keys.Min(), _zedToSlice.Keys.Max());
+
+    public Bounds3d GetInclusiveBounds()
+    {
+        if (IsEmpty)
+        {
+            return new Bounds3d();
+        }
+        var bounds2d = 
+            _zedToSlice
+                .Values
+                .Aggregate<Slice<TPayload>?, Bounds2d?>(null, (current, slice) => current?.Combine(slice!.GetInclusiveBounds()) ?? slice!.GetInclusiveBounds());
+        return Bounds3d.Combine(bounds2d!.Value, GetInclusiveZedBounds());
+    }
+    
+    public Voxels<TNewPayload> Clone<TNewPayload>(Func<TPayload,TNewPayload?> mapFunction) where TNewPayload : struct
+    {
+        var newVoxels = new Voxels<TNewPayload>();
+        foreach (var entry in _zedToSlice)
+        {
+            newVoxels.SetSlice(entry.Key, entry.Value.Clone(mapFunction));
+        }
+        return newVoxels;
+    }
 }

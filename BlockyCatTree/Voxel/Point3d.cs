@@ -1,4 +1,5 @@
-﻿using BlockyCatTree.Pixel;
+﻿using System.Numerics;
+using BlockyCatTree.Pixel;
 
 namespace BlockyCatTree.Voxel;
 
@@ -18,4 +19,20 @@ public readonly record struct Point3d(int X, int Y, int Z)
     
     public Point2d Point2d => new Point2d(X, Y);
     public Zed Zed => new Zed(Z);
+
+    public Point3d Plus(Point3d other)
+    {
+        return new Point3d(X + other.X, Y + other.Y, Z + other.Z);
+    }
+
+    public Point3d Minus(Point3d other)
+    {
+        return new Point3d(X - other.X, Y - other.Y, Z - other.Z);
+    }
+
+    public float Length => AsVector3.Length();
+
+    public Vector3 AsVector3 => new Vector3((float)X, (float)Y, (float)Z);
+
+    public Point3d Scale(int multiplier) => new(X * multiplier, Y * multiplier, Z * multiplier);
 }
