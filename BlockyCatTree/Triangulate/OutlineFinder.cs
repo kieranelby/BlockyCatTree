@@ -130,15 +130,6 @@ public static class OutlineFinder
 
     private static Point2d? FindStartingPoint(IReadOnlyBooleanSlice slice)
     {
-        // Careful - elsewhere we rely on starting in the bottom-left and working right
-        // then same for the next row up - we want the bottom side of the point to be empty
-        foreach (var point2d in slice.GetInclusiveBounds().IterateRowMajor())
-        {
-            if (slice.Exists(point2d))
-            {
-                return point2d;
-            }
-        }
-        return null;
+        return slice.FindStartingPoint();
     }
 }

@@ -28,12 +28,12 @@ public class SpaceColonization
 
     public record Settings(
         int NumUpperAttractors = 300,
-        int UpperRadius = 30,
+        int UpperRadius = 25,
         int UpperInfluenceRadius = 20,
         int KillRadius = 2,
-        int TrunkLength = 25,
+        int TrunkLength = 10,
         int TrunkSpacing = 3,
-        int StartHeight = 12,
+        int StartHeight = 10,
         int RootStemLength = 5,
         int NumLowerAttractors = 50,
         int LowerRadius = 15,
@@ -41,7 +41,7 @@ public class SpaceColonization
         bool Upsample = true,
         bool Strengthen = true,
         float UnitVoxelWeight = 16.0f,
-        float WeightLimit = 100.0f
+        float WeightLimit = 280.0f
         );
 
     private class TreeNode(Point3d point3d)
@@ -75,7 +75,10 @@ public class SpaceColonization
 
     public void RunToEnd()
     {
-        while (Step()) { }
+        while (Step())
+        {
+            Console.WriteLine($"{StepNumber} {CurrentStage}");
+        }
     }
 
     public void CreateAttractors()
@@ -394,7 +397,10 @@ public class SpaceColonization
                         var supportingPoint =
                             GetAtThenAround(point2d, 1)
                                 .First(p => sliceBelow.Exists(p));
-                        weightSliceBelow.Set(supportingPoint, regionAverageWeight);
+                        // isn't the slice below empty? no, we could map multiple points above
+                        // to the same one below
+                        weightSliceBelow.Set(supportingPoint, regionAverageWeight +
+                            (weightSliceBelow.Get(supportingPoint) ?? 0.0f));
                     }
                 }
             }
@@ -487,80 +493,8 @@ public class SpaceColonization
         {
             return false;
         }
-        var targetVoxels = new Voxels<byte>();
-        foreach (var zed in Voxels.GetInclusiveZedBounds())
-        {
-            if (!Voxels.TryGetSlice(zed, out var sourceSlice))
-            {
-                continue;
-            }
-            foreach (var sourcePoint2d in sourceSlice!.GetInclusiveBounds().IterateRowMajor())
-            {
-                if (!Voxels.TryGetSlice(new Zed(zed.Value - 1), out var sliceBelow))
-                {
-                    sliceBelow = new Slice<byte>();
-                }
-                if (!sourceSlice.Exists(sourcePoint2d))
-                {
-                    if (sliceBelow!.Exists(sourcePoint2d))
-                    {
-                        var targetPoint2d = sourcePoint2d.Scale(2);
-                        var targetPoint3d = new Point3d(targetPoint2d.X, targetPoint2d.Y, zed.Value * 2);
-                        AddCornersIfAdjacent(sourcePoint2d, targetPoint3d, sourceSlice, targetVoxels, 0);
-                    }
-                }
-                else
-                {
-                    var targetPoint2d = sourcePoint2d.Scale(2);
-                    var targetPoint3d = new Point3d(targetPoint2d.X, targetPoint2d.Y, zed.Value * 2);
-                    for (var dz = 0; dz <= 1; dz++)
-                    {
-                        for (var dy = 0; dy <= 1; dy++)
-                        {
-                            for (var dx = 0; dx <= 1; dx++)
-                            {
-                                targetVoxels.Set(targetPoint3d.Plus(new Point3d(dx,dy,dz)), default);
-                            }
-                        }
-                    }
-                    if (sliceBelow!.Exists(sourcePoint2d))
-                    {
-                        continue;
-                    }
-                    AddCornersIfAdjacent(sourcePoint2d, targetPoint3d, sliceBelow, targetVoxels, -1);
-                }
-            }
-        }
-        Voxels = targetVoxels;
+        Voxels = UpSampler.UpSample(Voxels);
         return false;
-    }
-
-    private void AddCornersIfAdjacent<T>(Point2d sourcePoint2d, Point3d targetPoint3d, Slice<T> slice, Voxels<T> targetVoxels, int zOffset) where T : struct
-    {
-        if (slice.Exists(sourcePoint2d.Plus(new Point2d(-1, -1))) ||
-            slice.Exists(sourcePoint2d.Plus(new Point2d(-1, 0))) ||
-            slice.Exists(sourcePoint2d.Plus(new Point2d(0, -1))))
-        {
-            targetVoxels.Set(targetPoint3d.Plus(new Point3d(0,0,zOffset)), default);
-        }
-        if (slice.Exists(sourcePoint2d.Plus(new Point2d(1, -1))) ||
-            slice.Exists(sourcePoint2d.Plus(new Point2d(1, 0))) ||
-            slice.Exists(sourcePoint2d.Plus(new Point2d(0, -1))))
-        {
-            targetVoxels.Set(targetPoint3d.Plus(new Point3d(1,0,zOffset)), default);
-        }
-        if (slice.Exists(sourcePoint2d.Plus(new Point2d(-1, 1))) ||
-            slice.Exists(sourcePoint2d.Plus(new Point2d(-1, 0))) ||
-            slice.Exists(sourcePoint2d.Plus(new Point2d(0, 1))))
-        {
-            targetVoxels.Set(targetPoint3d.Plus(new Point3d(0,1,zOffset)), default);
-        }
-        if (slice.Exists(sourcePoint2d.Plus(new Point2d(1, 1))) ||
-            slice.Exists(sourcePoint2d.Plus(new Point2d(1, 0))) ||
-            slice.Exists(sourcePoint2d.Plus(new Point2d(0, 1))))
-        {
-            targetVoxels.Set(targetPoint3d.Plus(new Point3d(1,1,zOffset)), default);
-        }
     }
 
     private bool IsEverReachableUpper(TreeNode treeNode, Attractor attractor)

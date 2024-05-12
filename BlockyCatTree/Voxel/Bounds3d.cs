@@ -4,7 +4,7 @@ namespace BlockyCatTree.Voxel;
 
 public readonly record struct Bounds3d(Point3d Min, Point3d Max)
 {
-    public Bounds3d Scale(int multiplier) => new(Min.Scale(multiplier), Max.Scale(multiplier));
+    public Bounds3d Scale(int multiplier) => new(Min.ScaleUp(multiplier), Max.ScaleUp(multiplier));
 
     public IEnumerable<Point3d> Iterate()
     {
@@ -29,4 +29,6 @@ public readonly record struct Bounds3d(Point3d Min, Point3d Max)
                 bounds2d.Max.X,
                 bounds2d.Max.Y,
                 zedBounds.Max.Value));
+
+    public Bounds3d Expand(int dx, int dy, int dz) => new(Min.Plus(new Point3d(-dx, -dy, -dz)), Max.Plus(new Point3d(dx, dy, dz)));
 }

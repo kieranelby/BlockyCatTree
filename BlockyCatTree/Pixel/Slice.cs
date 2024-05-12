@@ -7,6 +7,17 @@ public class Slice<TPayload> : IReadOnlyBooleanSlice where TPayload : struct
 {
     private readonly Dictionary<Point2d, TPayload> _pointToPayload = new();
 
+    private class RowMajorPointComparer : IComparer<Point2d>
+    {
+        public static readonly RowMajorPointComparer Instance = new RowMajorPointComparer();
+        public int Compare(Point2d a, Point2d b)
+        {
+            var yComparison = a.Y.CompareTo(b.Y);
+            if (yComparison != 0) return yComparison;
+            return a.X.CompareTo(b.X);
+        }
+    }
+
     public bool IsEmpty => _pointToPayload.Count == 0;
 
     public TPayload? Get(Point2d point2d)
@@ -40,6 +51,15 @@ public class Slice<TPayload> : IReadOnlyBooleanSlice where TPayload : struct
                     _pointToPayload.Keys.Max(p => p.Y)
                 )
             );
+
+    public Point2d? FindStartingPoint()
+    {
+        if (IsEmpty)
+        {
+            return null;
+        }
+        return _pointToPayload.Keys.Min(RowMajorPointComparer.Instance);
+    }
 
     public void CopyPointsTo(List<Point2d> destination)
     {

@@ -82,4 +82,13 @@ public class PathInteriorTester
             }
         }
     }
+
+    public Bounds2d GetInclusiveBounds()
+    {
+        var minY = _yToXTransitions.Keys.Min();
+        var maxY = _yToXTransitions.Keys.Max();
+        var minX = _yToXTransitions.Values.Min(ts => ts[0]);
+        var maxX = _yToXTransitions.Values.Max(ts => ts[^1]);
+        return new Bounds2d(new Point2d(minX, minY), new Point2d(maxX, maxY));
+    }
 }
