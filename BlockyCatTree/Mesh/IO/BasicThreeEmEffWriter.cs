@@ -7,7 +7,15 @@ using System.Xml;
 namespace BlockyCatTree.Mesh.IO;
 
 /// <summary>
-/// Knows how to write simple 3MF files that can be read by Bambu Studio at least.
+/// Knows how to write simple 3MF files that can be read by:
+///  - ourselves
+///  - our own UI
+///  - Bambu Studio
+///  - online 3d viewer thingy
+///  - Blender plugin
+/// There are some slightly unusual things we do:
+///  - vendor metadata describing the generation state (for progress snapshots)
+///  - [planned] use non-built objects to store voxels
 /// </summary>
 public static class BasicThreeEmEffWriter
 {
@@ -30,6 +38,13 @@ public static class BasicThreeEmEffWriter
             writer.WriteStartElement("model", "http://schemas.microsoft.com/3dmanufacturing/core/2015/02");
             writer.WriteAttributeString("unit", "millimeter");
             writer.WriteAttributeString("xml", "lang", "http://www.w3.org/XML/1998/namespace", "en-US");
+            foreach (var (name, value) in model.Metadata)
+            {
+                writer.WriteStartElement("metadata");
+                writer.WriteAttributeString("name", name);
+                writer.WriteString(value);
+                writer.WriteEndElement(); // metadata
+            }
             writer.WriteStartElement("resources");
             foreach (var solid in model.Solids)
             {

@@ -73,7 +73,7 @@ public class VoxelsToSolidTests
         var objectId = ObjectId.FirstId;
         var solid = VoxelsToSolid.Triangulate(objectId, voxels);
         var buildItem = new BuildItem(objectId, Matrix4x4.Identity);
-        var model = new Model([solid], [buildItem]);
+        var model = new Model([solid], [buildItem], []);
         BasicThreeEmEffWriter.Write("E:/example02.3mf", model);
     }
 
@@ -100,7 +100,7 @@ public class VoxelsToSolidTests
         var objectId = ObjectId.FirstId;
         var solid = VoxelsToSolid.Triangulate(objectId, voxels);
         var buildItem = new BuildItem(objectId, Matrix4x4.Identity);
-        var model = new Model([solid], [buildItem]);
+        var model = new Model([solid], [buildItem], []);
         BasicThreeEmEffWriter.Write("E:/example03.3mf", model);
     }
 
@@ -136,7 +136,7 @@ public class VoxelsToSolidTests
         var objectId = ObjectId.FirstId;
         var solid = VoxelsToSolid.Triangulate(objectId, voxels);
         var buildItem = new BuildItem(objectId, Matrix4x4.Identity);
-        var model = new Model([solid], [buildItem]);
+        var model = new Model([solid], [buildItem], []);
         BasicThreeEmEffWriter.Write("E:/example04.3mf", model);
     }
 
@@ -196,7 +196,7 @@ public class VoxelsToSolidTests
         var objectId = ObjectId.FirstId;
         var solid = VoxelsToSolid.Triangulate(objectId, voxels);
         var buildItem = new BuildItem(objectId, Matrix4x4.Identity);
-        var model = new Model([solid], [buildItem]);
+        var model = new Model([solid], [buildItem], []);
         BasicThreeEmEffWriter.Write("E:/example05.3mf", model);
     }
 

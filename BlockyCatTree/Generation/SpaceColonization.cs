@@ -5,7 +5,7 @@ using BlockyCatTree.Voxel;
 
 namespace BlockyCatTree.Generation;
 
-public class SpaceColonization
+public class SpaceColonization : IGenerator
 {
     public enum Stage
     {
@@ -21,27 +21,98 @@ public class SpaceColonization
     private readonly Settings _settings = new();
     private readonly Random _rng;
     public int StageStartStepNumber { get; private set; }
-    public int StepNumber { get; private set; }
+    public int TotalStepNumber { get; private set; }
+    public int StageStepNumber => TotalStepNumber - StageStartStepNumber;
     public Stage CurrentStage { get; private set; } = Stage.CreateAttractors;
+    public bool IsDone => CurrentStage == Stage.Done;
+    public string StageName => CurrentStage.ToString();
     public Voxels<byte> Voxels { get; private set; } = new();
     public Voxels<byte> InternalVoxels { get; } = new();
 
+    public void DoNextStep()
+    {
+        TotalStepNumber++;
+        if (TotalStepNumber > 5000)
+        {
+            Console.WriteLine("Warning - reached maximum number of steps");
+            StageStartStepNumber = TotalStepNumber;
+            CurrentStage = Stage.Done;
+        }
+        switch (CurrentStage)
+        {
+            case Stage.CreateAttractors:
+                CreateAttractors();
+                NextStage();
+                break;
+            case Stage.GrowLower:
+                if (!GrowLower())
+                {
+                    NextStage();
+                }
+                break;
+            case Stage.GrowUpper:
+                if (!GrowUpper())
+                {
+                    NextStage();
+                }
+                break;
+            case Stage.Strengthen:
+                if (!Strengthen())
+                {
+                    NextStage();
+                }
+                break;
+            case Stage.Clean:
+                if (!Clean())
+                {
+                    NextStage();
+                }
+                break;
+            case Stage.Upsample:
+                if (!Upsample())
+                {
+                    NextStage();
+                }
+                break;
+            case Stage.Done:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    private void NextStage()
+    {
+        StageStartStepNumber = TotalStepNumber;
+        CurrentStage++;
+    }
+
+    public GeneratorSnapshot TakeSnapshot()
+    {
+        var namedVoxelsList = new List<NamedVoxels>
+        {
+            new NamedVoxels("Main", Voxels.Clone<byte>(x => x))
+        };
+        return new GeneratorSnapshot(TotalStepNumber, StageName, StageStepNumber, IsDone, namedVoxelsList, []);
+    }
+
     public record Settings(
-        int NumUpperAttractors = 300,
-        int UpperRadius = 25,
-        int UpperInfluenceRadius = 20,
+        int NumUpperAttractors = 200,
+        int UpperRadius = 24,
+        int UpperInfluenceRadius = 18,
         int KillRadius = 2,
-        int TrunkLength = 10,
+        int TrunkLength = 2,
         int TrunkSpacing = 3,
-        int StartHeight = 10,
-        int RootStemLength = 5,
+        int StartHeight = 6,
+        int RootStemLength = 2,
         int NumLowerAttractors = 50,
         int LowerRadius = 15,
         int LowerInfluenceRadius = 20,
         bool Upsample = true,
         bool Strengthen = true,
-        float UnitVoxelWeight = 16.0f,
-        float WeightLimit = 280.0f
+        float UnitVoxelStaticWeight = 2.0f,
+        float UnitVoxelDynamicWeight = 3.0f,
+        float WeightLimit = 100.0f
         );
 
     private class TreeNode(Point3d point3d)
@@ -71,14 +142,6 @@ public class SpaceColonization
     public SpaceColonization(Random rng)
     {
         _rng = rng;
-    }
-
-    public void RunToEnd()
-    {
-        while (Step())
-        {
-            Console.WriteLine($"{StepNumber} {CurrentStage}");
-        }
     }
 
     public void CreateAttractors()
@@ -160,64 +223,6 @@ public class SpaceColonization
         }
     }
 
-    private void NextStage()
-    {
-        StageStartStepNumber = StepNumber;
-        CurrentStage++;
-    }
-
-
-    public bool Step()
-    {
-        StepNumber++;
-        // TODO - error stage?
-        if (StepNumber > 5000)
-        {
-            return false;
-        }
-        switch (CurrentStage)
-        {
-            case Stage.CreateAttractors:
-                CreateAttractors();
-                NextStage();
-                return true;
-            case Stage.GrowLower:
-                if (!GrowLower())
-                {
-                    NextStage();
-                }
-                return true;
-            case Stage.GrowUpper:
-                if (!GrowUpper())
-                {
-                    NextStage();
-                }
-                return true;
-            case Stage.Strengthen:
-                if (!Strengthen())
-                {
-                    NextStage();
-                }
-                return true;
-            case Stage.Clean:
-                if (!Clean())
-                {
-                    NextStage();
-                }
-                return true;
-            case Stage.Upsample:
-                if (!Upsample())
-                {
-                    NextStage();
-                }
-                return true;
-            case Stage.Done:
-                return false;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
-    }
-
     public bool GrowUpper()
     {
         var attractors = _upperNodesAndAttractors.Attractors; 
@@ -279,7 +284,7 @@ public class SpaceColonization
         treeNodes.AddRange(newTreeNodes);
         attractors.RemoveAll(a => !a.Active);
         var maxSteps = 3 * (_settings.TrunkLength + _settings.UpperRadius * 2);
-        return treeNodes.Count > 0 && attractors.Count > 0 && (StepNumber - StageStartStepNumber) < maxSteps;
+        return treeNodes.Count > 0 && attractors.Count > 0 && (TotalStepNumber - StageStartStepNumber) < maxSteps;
     }
 
     private bool GrowLower()
@@ -343,7 +348,7 @@ public class SpaceColonization
         treeNodes.AddRange(newTreeNodes);
         attractors.RemoveAll(a => !a.Active);
         var maxSteps = 3 * (_settings.StartHeight + _settings.LowerRadius * 2);
-        return treeNodes.Count > 0 && attractors.Count > 0 && (StepNumber - StageStartStepNumber) < maxSteps;
+        return treeNodes.Count > 0 && attractors.Count > 0 && (TotalStepNumber - StageStartStepNumber) < maxSteps;
     }
 
     private void FillUpperNode(Point3d point3d)
@@ -361,7 +366,6 @@ public class SpaceColonization
 
     private Voxels<float> ComputeWeights()
     {
-        var oneVoxelWeight = _settings.UnitVoxelWeight;
         var weightVoxels = new Voxels<float>();
         // Work from top to ground (no need to go underground)
         foreach (var zed in Voxels.GetInclusiveZedBounds().Reverse())
@@ -382,8 +386,15 @@ public class SpaceColonization
                 // Work out the average weight of the region, including any we added from above in the previous iteration
                 var regionCount = outlineTester.IterateRowMajor().Count();
                 var regionTotalWeight = outlineTester.IterateRowMajor().Select(p => currentWeightSlice.Get(p) ?? 0.0f).Sum();
-                // Don't forget to add in the unit weight too
-                var regionAverageWeight = regionTotalWeight / regionCount + oneVoxelWeight;
+                // Don't forget to add in the weight of each voxel - to stop the weight
+                // near the bottom becoming far too high, and to sort of model wind loading,
+                // we say that voxels in regions with a high area : perimeter ratio weigh less
+                // For a 1x1, the perimeter is 4 and the area is 1, so PoA = 4.
+                // For a 10x10, the perimeter is 40 and the area is 100, so PoA = 0.4.
+                var perimeterOverArea = (float) (outline.Exterior.Points.Count - 1) / regionCount;
+                var regionAverageWeight = regionTotalWeight / regionCount +
+                                          _settings.UnitVoxelStaticWeight +
+                                          _settings.UnitVoxelDynamicWeight * perimeterOverArea;
                 foreach (var point2d in outlineTester.IterateRowMajor())
                 {
                     // Distribute the weight evenly in the region
@@ -455,7 +466,7 @@ public class SpaceColonization
             }
         }
         var maxSteps = 500;
-        return weightLimitExceeded && (StepNumber - StageStartStepNumber) < maxSteps;
+        return weightLimitExceeded && (TotalStepNumber - StageStartStepNumber) < maxSteps;
     }
     
     private bool Clean()

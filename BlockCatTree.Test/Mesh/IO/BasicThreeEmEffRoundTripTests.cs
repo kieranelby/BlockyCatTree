@@ -79,6 +79,6 @@ public class BasicThreeEmEffRoundTripTests
         var objectId = new ObjectId(1);
         var solid = new Solid(objectId, vertices, triangles);
         var buildItem = new BuildItem(objectId, Matrix4x4.Identity);
-        return new Model([solid], [buildItem]);
+        return new Model([solid], [buildItem], []);
     }
 }

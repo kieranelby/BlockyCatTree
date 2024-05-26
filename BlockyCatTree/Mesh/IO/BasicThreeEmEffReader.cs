@@ -52,7 +52,7 @@ public static class BasicThreeEmEffReader
             int.Parse(vn!.Attributes!["v3"]!.Value))).ToList();
         var solid = new Solid(objectId, vertices, triangles);
         var buildItem = new BuildItem(objectId, transform);
-        return new Model(new List<Solid> { solid }, new List<BuildItem>{ buildItem });
+        return new Model([solid], [buildItem], []);
     }
 
     private static Matrix4x4 ParseTransformString(string transform)
