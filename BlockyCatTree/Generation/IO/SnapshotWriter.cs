@@ -60,7 +60,7 @@ public class SnapshotWriter
             {"BlockyCatTree:StageStepNumber",snapshot.StageStepNumber.ToString()},
             {"BlockyCatTree:Stage",snapshot.StageName},
         });
-        var outputFilePath = $"{_targetDirectory}/tree-{snapshot.TotalStepNumber}-{snapshot.StageName}-{snapshot.StageStepNumber}.3mf";
+        var outputFilePath = $"{_targetDirectory}/tree-{snapshot.TotalStepNumber:D5}-{snapshot.StageName}-{snapshot.StageStepNumber:D4}.3mf";
         BasicThreeEmEffWriter.Write(outputFilePath, model);
     }
 

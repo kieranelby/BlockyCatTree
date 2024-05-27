@@ -38,6 +38,21 @@ public static class BasicThreeEmEffWriter
             writer.WriteStartElement("model", "http://schemas.microsoft.com/3dmanufacturing/core/2015/02");
             writer.WriteAttributeString("unit", "millimeter");
             writer.WriteAttributeString("xml", "lang", "http://www.w3.org/XML/1998/namespace", "en-US");
+            var prefixesAdded = new HashSet<string>();
+            foreach (var name in model.Metadata.Keys)
+            {
+                if (!name.Contains(':'))
+                {
+                    continue;
+                }
+                var namespacePrefix = name.Split(':', 2)[0];
+                if (prefixesAdded.Contains(namespacePrefix))
+                {
+                    continue;
+                }
+                writer.WriteAttributeString("xmlns", namespacePrefix, null, $"http://example.com/{namespacePrefix}");
+                prefixesAdded.Add(namespacePrefix);
+            }
             foreach (var (name, value) in model.Metadata)
             {
                 writer.WriteStartElement("metadata");
