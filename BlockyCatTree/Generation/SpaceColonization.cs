@@ -12,9 +12,11 @@ public class SpaceColonization : IGenerator
         CreateAttractors,
         GrowLower,
         GrowUpper,
+        Decorate,
         Strengthen,
         Clean,
-        Upsample,
+        Upsample1,
+        Upsample2,
         Done
     }
 
@@ -27,8 +29,10 @@ public class SpaceColonization : IGenerator
     public bool IsDone => CurrentStage == Stage.Done;
     public string StageName => CurrentStage.ToString();
     public Voxels<byte> Voxels { get; private set; } = new();
-    public Voxels<byte> InternalVoxels { get; } = new();
-
+    public Voxels<byte> AttractorVoxels { get; } = new();
+    public Voxels<byte> CatVoxels { get; } = new();
+    public List<ExternalBuildItem> ExternalBuildItems { get; private set; } = new();
+    
     public void DoNextStep()
     {
         TotalStepNumber++;
@@ -56,6 +60,12 @@ public class SpaceColonization : IGenerator
                     NextStage();
                 }
                 break;
+            case Stage.Decorate:
+                if (!Decorate())
+                {
+                    NextStage();
+                }
+                break;
             case Stage.Strengthen:
                 if (!Strengthen())
                 {
@@ -68,7 +78,13 @@ public class SpaceColonization : IGenerator
                     NextStage();
                 }
                 break;
-            case Stage.Upsample:
+            case Stage.Upsample1:
+                if (!Upsample())
+                {
+                    NextStage();
+                }
+                break;
+            case Stage.Upsample2:
                 if (!Upsample())
                 {
                     NextStage();
@@ -91,9 +107,14 @@ public class SpaceColonization : IGenerator
     {
         var namedVoxelsList = new List<NamedVoxels>
         {
-            new NamedVoxels("Main", Voxels.Clone<byte>(x => x))
+            new NamedVoxels("Main", Voxels.Clone<byte>(x => x)),
+            new NamedVoxels("Attractors", AttractorVoxels.Clone<byte>(x => x))
+            //new NamedVoxels("Cats", CatVoxels.Clone<byte>(x => x))
         };
-        return new GeneratorSnapshot(TotalStepNumber, StageName, StageStepNumber, IsDone, namedVoxelsList, []);
+        return new GeneratorSnapshot(
+            TotalStepNumber, StageName, StageStepNumber, IsDone,
+            namedVoxelsList,
+            [..ExternalBuildItems]);
     }
 
     public record Settings(
@@ -112,7 +133,7 @@ public class SpaceColonization : IGenerator
         bool Strengthen = true,
         float UnitVoxelStaticWeight = 2.0f,
         float UnitVoxelDynamicWeight = 3.0f,
-        float WeightLimit = 100.0f
+        float WeightLimit = 180.0f
         );
 
     private class TreeNode(Point3d point3d)
@@ -159,7 +180,7 @@ public class SpaceColonization : IGenerator
             var randomCuboidPoint = new Point3d(
                 _rng.Next(-_settings.UpperRadius, _settings.UpperRadius),
                 _rng.Next(-_settings.UpperRadius, _settings.UpperRadius),
-                _rng.Next(upperCenterHeight - _settings.UpperRadius, upperCenterHeight + _settings.UpperRadius)
+                _rng.Next(upperCenterHeight - _settings.UpperRadius, upperCenterHeight + _settings.UpperRadius / 2)
             );
             if (randomCuboidPoint.Minus(upperCenter).Length > _settings.UpperRadius)
             {
@@ -213,13 +234,13 @@ public class SpaceColonization : IGenerator
         {
             var attractor = new Attractor(point3d);
             _upperNodesAndAttractors.Attractors.Add(attractor);
-            InternalVoxels.Set(attractor.Point3d, default);
+            AttractorVoxels.Set(attractor.Point3d, default);
         }
         void AddLowerAttractor(Point3d point3d)
         {
             var attractor = new Attractor(point3d);
             _lowerNodesAndAttractors.Attractors.Add(attractor);
-            InternalVoxels.Set(attractor.Point3d, default);
+            AttractorVoxels.Set(attractor.Point3d, default);
         }
     }
 
@@ -236,6 +257,7 @@ public class SpaceColonization : IGenerator
             {
                 if (IsTooClose(treeNode, attractor, _settings.KillRadius))
                 {
+                    treeNode.Active = false;
                     attractor.Active = false;
                     continue;
                 }
@@ -255,7 +277,7 @@ public class SpaceColonization : IGenerator
                     closestTreeNode = treeNode;
                 }
             }
-            if (!attractor.EverReachable)
+            if (attractor is { EverReachable: false })
             {
                 attractor.Active = false;
                 continue;
@@ -285,6 +307,21 @@ public class SpaceColonization : IGenerator
         attractors.RemoveAll(a => !a.Active);
         var maxSteps = 3 * (_settings.TrunkLength + _settings.UpperRadius * 2);
         return treeNodes.Count > 0 && attractors.Count > 0 && (TotalStepNumber - StageStartStepNumber) < maxSteps;
+    }
+
+    private bool MaybeAddCat(Point3d treeNodePoint3d)
+    {
+        if (CatVoxels.Exists(treeNodePoint3d))
+        {
+            return false;
+        }
+        var modelTransform = Matrix4x4.Identity;
+        modelTransform *= Matrix4x4.CreateTranslation(new Vector3(-128.0f, -128.0f, 0.0f));
+        modelTransform *= Matrix4x4.CreateScale(0.03f);
+        modelTransform *= Matrix4x4.CreateTranslation(treeNodePoint3d.AsVector3);
+        modelTransform *= Matrix4x4.CreateTranslation(new Vector3(0.5f, 0.5f, 0.0f));
+        ExternalBuildItems.Add(new ExternalBuildItem("E:/tree-source-models/Low_Poly_Cat.3mf", modelTransform));
+        return true;
     }
 
     private bool GrowLower()
@@ -468,7 +505,47 @@ public class SpaceColonization : IGenerator
         var maxSteps = 500;
         return weightLimitExceeded && (TotalStepNumber - StageStartStepNumber) < maxSteps;
     }
-    
+
+    private bool Decorate()
+    {
+        foreach (var zed in Voxels.GetInclusiveZedBounds())
+        {
+            if (zed.Value < _settings.StartHeight)
+            {
+                continue;
+            }
+            if (!Voxels.TryGetSlice(zed, out var slice) || slice == null)
+            {
+                continue;
+            }
+            if (!Voxels.TryGetSlice(zed.Plus(1), out var sliceAbove) || sliceAbove == null)
+            {
+                sliceAbove = new Slice<byte>();
+            }
+            foreach (var point2d in slice.GetInclusiveBounds().IterateRowMajor())
+            {
+                // cat cannot sit on nothing
+                if (!slice.Exists(point2d))
+                {
+                    continue;
+                }
+                // cat won't sit next to anything
+                if (GetAround(point2d, 1).Any(p => slice.Exists(p)))
+                {
+                    continue;
+                }
+                // cat cannot sit under something
+                if (GetAtThenAround(point2d, 1).Any(p => sliceAbove.Exists(p)))
+                {
+                    continue;
+                }
+                // candidate location! maybe want some measure of closeness to other cats
+                MaybeAddCat(new Point3d(point2d.X, point2d.Y, zed.Value));
+            }
+        }
+        return false;
+    }
+
     private bool Clean()
     {
         foreach (var zed in Voxels.GetInclusiveZedBounds())
@@ -505,6 +582,10 @@ public class SpaceColonization : IGenerator
             return false;
         }
         Voxels = UpSampler.UpSample(Voxels);
+        ExternalBuildItems = ExternalBuildItems.Select(eb => eb with
+        {
+            Transform = eb.Transform * Matrix4x4.CreateScale(2.0f)
+        }).ToList();
         return false;
     }
 

@@ -8,7 +8,7 @@ namespace BlockyCatTree.Generation.IO;
 public class SnapshotWriter
 {
     private readonly string _targetDirectory;
-    private readonly Dictionary<string, ObjectId> _externalBuildItemCache;
+    private readonly Dictionary<string, Model> _externalBuildItemCache;
 
     public SnapshotWriter(string targetDirectory)
     {
@@ -39,17 +39,19 @@ public class SnapshotWriter
             solids.Add(solid);
             buildItems.Add(buildItem);
         }
+        var alreadyAddedExternalSolids = new Dictionary<string, ObjectId>();  
         foreach (var externalBuildItem in snapshot.ExternalBuildItemList)
         {
-            if (!_externalBuildItemCache.TryGetValue(externalBuildItem.SourceFilename, out var objectId))
+            var externalModel = LoadExternalModel(externalBuildItem.SourceFilename);
+            if (!alreadyAddedExternalSolids.TryGetValue(externalBuildItem.SourceFilename, out var solidObjectId))
             {
-                objectId = nextObjectId;
+                solidObjectId = nextObjectId;
                 nextObjectId = nextObjectId.Next;
-                var solid = LoadExternalSolid(externalBuildItem.SourceFilename);
+                var solid = externalModel.Solids[0] with { ObjectId = solidObjectId};
                 solids.Add(solid);
-                _externalBuildItemCache[externalBuildItem.SourceFilename] = objectId;
+                alreadyAddedExternalSolids[externalBuildItem.SourceFilename] = solidObjectId;
             }
-            var buildItem = new BuildItem(objectId, externalBuildItem.Transform * basePlateCenterTransform);
+            var buildItem = new BuildItem(solidObjectId, externalModel.BuildItems[0].Transform * externalBuildItem.Transform * basePlateCenterTransform);
             buildItems.Add(buildItem);
         }
         var model = new Model(solids, buildItems, new Dictionary<string, string>
@@ -64,8 +66,13 @@ public class SnapshotWriter
         BasicThreeEmEffWriter.Write(outputFilePath, model);
     }
 
-    private Solid LoadExternalSolid(string sourceFilename)
+    private Model LoadExternalModel(string sourceFilename)
     {
-        throw new NotImplementedException();
+        if (!_externalBuildItemCache.TryGetValue(sourceFilename, out var model))
+        {
+            model = BasicThreeEmEffReader.Read(sourceFilename);
+            _externalBuildItemCache[sourceFilename] = model;
+        }
+        return model;
     }
 }
