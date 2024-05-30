@@ -12,11 +12,12 @@ public class SpaceColonization : IGenerator
         CreateAttractors,
         GrowLower,
         GrowUpper,
-        Decorate,
+        DecorateEarly,
         Strengthen,
         Clean,
         Upsample1,
         Upsample2,
+        DecorateLate,
         Done
     }
 
@@ -60,8 +61,8 @@ public class SpaceColonization : IGenerator
                     NextStage();
                 }
                 break;
-            case Stage.Decorate:
-                if (!Decorate())
+            case Stage.DecorateEarly:
+                if (!DecorateEarly())
                 {
                     NextStage();
                 }
@@ -86,6 +87,12 @@ public class SpaceColonization : IGenerator
                 break;
             case Stage.Upsample2:
                 if (!Upsample())
+                {
+                    NextStage();
+                }
+                break;
+            case Stage.DecorateLate:
+                if (!DecorateLate())
                 {
                     NextStage();
                 }
@@ -311,28 +318,28 @@ public class SpaceColonization : IGenerator
         return treeNodes.Count > 0 && attractors.Count > 0 && (TotalStepNumber - StageStartStepNumber) < maxSteps;
     }
 
-    private bool MaybeAddCat(Point3d treeNodePoint3d)
+    private bool MaybeAddCat(Point3d treeNodePoint3d, int alreadyUpscaledBy)
     {
-        if (CatVoxels.Exists(treeNodePoint3d))
+        if (GetAtThenAround(treeNodePoint3d, alreadyUpscaledBy * 3).Any(p => CatVoxels.Exists(p)))
         {
             return false;
         }
-        if (_rng.NextDouble() < 0.70)
+        if (_rng.NextDouble() < 0.60)
         {
             return false;
         }
         var catTransform = Matrix4x4.Identity;
         catTransform *= Matrix4x4.CreateTranslation(new Vector3(-128.0f, -128.0f, 0.0f));
         catTransform *= Matrix4x4.CreateRotationZ((float)(_rng.NextDouble() * Math.PI * 2.0));
-        catTransform *= Matrix4x4.CreateScale(0.03f);
+        catTransform *= Matrix4x4.CreateScale(0.03f * alreadyUpscaledBy);
         catTransform *= Matrix4x4.CreateTranslation(treeNodePoint3d.AsVector3);
         catTransform *= Matrix4x4.CreateTranslation(new Vector3(+0.5f, +0.5f, 1.0f));
-        catTransform *= Matrix4x4.CreateTranslation(new Vector3(+0.0f, +0.0f, 0.25f * 0.1f * 75.0f / 2.0f - 0.5f));
+        catTransform *= Matrix4x4.CreateTranslation(new Vector3(+0.0f, +0.0f, 0.25f * alreadyUpscaledBy * 0.1f * 75.0f / 2.0f - 0.5f));
         ExternalBuildItems.Add(new ExternalBuildItem("E:/tree-source-models/Low_Poly_Cat.3mf", catTransform));
         
         var holderTransform = Matrix4x4.Identity;
         holderTransform *= Matrix4x4.CreateTranslation(new Vector3(0.0f, 0.0f, 0.0f));
-        holderTransform *= Matrix4x4.CreateScale(0.25f);
+        holderTransform *= Matrix4x4.CreateScale(0.25f * alreadyUpscaledBy);
         holderTransform *= Matrix4x4.CreateTranslation(treeNodePoint3d.AsVector3);
         holderTransform *= Matrix4x4.CreateTranslation(new Vector3(+0.5f, +0.5f, 1.0f));
         holderTransform *= Matrix4x4.CreateTranslation(new Vector3(+0.0f, +0.0f, -0.5f));
@@ -524,8 +531,9 @@ public class SpaceColonization : IGenerator
         return weightLimitExceeded && (TotalStepNumber - StageStartStepNumber) < maxSteps;
     }
 
-    private bool Decorate()
+    private bool DecorateEarly()
     {
+        return false; 
         foreach (var zed in Voxels.GetInclusiveZedBounds())
         {
             if (zed.Value < _settings.StartHeight)
@@ -558,7 +566,50 @@ public class SpaceColonization : IGenerator
                     continue;
                 }
                 // candidate location! maybe want some measure of closeness to other cats
-                MaybeAddCat(new Point3d(point2d.X, point2d.Y, zed.Value));
+                MaybeAddCat(new Point3d(point2d.X, point2d.Y, zed.Value), 1);
+            }
+        }
+        return false;
+    }
+
+    private bool DecorateLate()
+    {
+        const int roughOriginalCatRadius = 2;
+        const int alreadyUpscaledBy = 4;
+        foreach (var zed in Voxels.GetInclusiveZedBounds())
+        {
+            if (zed.Value < _settings.StartHeight * alreadyUpscaledBy)
+            {
+                continue;
+            }
+            if (!Voxels.TryGetSlice(zed, out var slice) || slice == null)
+            {
+                continue;
+            }
+            if (!Voxels.TryGetSlice(zed.Plus(1), out var sliceAbove) || sliceAbove == null)
+            {
+                sliceAbove = new Slice<byte>();
+            }
+            foreach (var point2d in slice.GetInclusiveBounds().IterateRowMajor())
+            {
+                // cat needs plenty of space to sit on
+                if (GetAtThenAround(point2d, alreadyUpscaledBy/4).Any(p => !slice.Exists(p)))
+                {
+                    continue;
+                }
+                // cat cannot sit under something (cheap check)
+                if (GetAtThenAround(point2d, alreadyUpscaledBy/2).Any(p => sliceAbove.Exists(p)))
+                {
+                    continue;
+                }
+                // cat cannot clip into bits of tree (expensive check)
+                var expandBy = (roughOriginalCatRadius - 1) * alreadyUpscaledBy;
+                var point3d = new Point3d(point2d.X, point2d.Y, zed.Value + expandBy + 1);
+                if (GetAtThenAround(point3d, expandBy).Any(p => Voxels.Exists(p)))
+                {
+                    continue;
+                }
+                MaybeAddCat(new Point3d(point2d.X, point2d.Y, zed.Value), alreadyUpscaledBy);
             }
         }
         return false;
@@ -661,6 +712,25 @@ public class SpaceColonization : IGenerator
                     continue;
                 }
                 yield return point2d.Plus(new Point2d(x, y));
+            }
+        }
+    }
+
+    private IEnumerable<Point3d> GetAtThenAround(Point3d point3d, int expandBy)
+    {
+        yield return point3d;
+        for (var z = -expandBy; z <= +expandBy; z++)
+        {
+            for (var y = -expandBy; y <= +expandBy; y++)
+            {
+                for (var x = -expandBy; x <= +expandBy; x++)
+                {
+                    if (x == 0 && y == 0 && z == 0)
+                    {
+                        continue;
+                    }
+                    yield return point3d.Plus(new Point3d(x, y, z));
+                }
             }
         }
     }
