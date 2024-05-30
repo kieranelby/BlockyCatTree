@@ -105,12 +105,14 @@ public class SpaceColonization : IGenerator
 
     public GeneratorSnapshot TakeSnapshot()
     {
-        var namedVoxelsList = new List<NamedVoxels>
-        {
-            new NamedVoxels("Main", Voxels.Clone<byte>(x => x)),
-            new NamedVoxels("Attractors", AttractorVoxels.Clone<byte>(x => x))
-            //new NamedVoxels("Cats", CatVoxels.Clone<byte>(x => x))
-        };
+        var namedVoxelsList =
+            IsDone
+                ? [new NamedVoxels("Main", Voxels.Clone<byte>(x => x))]
+                : new List<NamedVoxels> {
+                    new("Main", Voxels.Clone<byte>(x => x)),
+                    new("Attractors", AttractorVoxels.Clone<byte>(x => x)),
+                    new("Cats", CatVoxels.Clone<byte>(x => x))
+                };
         return new GeneratorSnapshot(
             TotalStepNumber, StageName, StageStepNumber, IsDone,
             namedVoxelsList,
@@ -315,12 +317,17 @@ public class SpaceColonization : IGenerator
         {
             return false;
         }
+        if (_rng.NextDouble() < 0.70)
+        {
+            return false;
+        }
         var modelTransform = Matrix4x4.Identity;
         modelTransform *= Matrix4x4.CreateTranslation(new Vector3(-128.0f, -128.0f, 0.0f));
         modelTransform *= Matrix4x4.CreateScale(0.03f);
         modelTransform *= Matrix4x4.CreateTranslation(treeNodePoint3d.AsVector3);
-        modelTransform *= Matrix4x4.CreateTranslation(new Vector3(0.5f, 0.5f, 0.0f));
+        modelTransform *= Matrix4x4.CreateTranslation(new Vector3(+0.5f, +0.5f, 1.0f));
         ExternalBuildItems.Add(new ExternalBuildItem("E:/tree-source-models/Low_Poly_Cat.3mf", modelTransform));
+        CatVoxels.Set(treeNodePoint3d, default);
         return true;
     }
 
@@ -582,9 +589,14 @@ public class SpaceColonization : IGenerator
             return false;
         }
         Voxels = UpSampler.UpSample(Voxels);
+        // hmm this isn't quite right, maybe it depends if odd or even???
+        var transform =
+            Matrix4x4.CreateTranslation(-0.5f, -0.5f, 0.0f) *
+            Matrix4x4.CreateScale(2.0f) *
+            Matrix4x4.CreateTranslation(+0.5f, +0.5f, 0.0f);
         ExternalBuildItems = ExternalBuildItems.Select(eb => eb with
         {
-            Transform = eb.Transform * Matrix4x4.CreateScale(2.0f)
+            Transform = eb.Transform * transform 
         }).ToList();
         return false;
     }

@@ -56,6 +56,7 @@ public static class UpSampler
     {
         var target = new Voxels<T>();
         var targetBounds = source.GetInclusiveBounds().Expand(1,1,0).Scale(2);
+        targetBounds = targetBounds with { Max = targetBounds.Max.Plus(new Point3d(0, 0, 1)) };
         foreach (var targetPoint3d in targetBounds.Iterate())
         {
             var rules = (targetPoint3d.Z % 2 == 0) ? _evenRules : _oddRules;
