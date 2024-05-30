@@ -321,12 +321,23 @@ public class SpaceColonization : IGenerator
         {
             return false;
         }
-        var modelTransform = Matrix4x4.Identity;
-        modelTransform *= Matrix4x4.CreateTranslation(new Vector3(-128.0f, -128.0f, 0.0f));
-        modelTransform *= Matrix4x4.CreateScale(0.03f);
-        modelTransform *= Matrix4x4.CreateTranslation(treeNodePoint3d.AsVector3);
-        modelTransform *= Matrix4x4.CreateTranslation(new Vector3(+0.5f, +0.5f, 1.0f));
-        ExternalBuildItems.Add(new ExternalBuildItem("E:/tree-source-models/Low_Poly_Cat.3mf", modelTransform));
+        var catTransform = Matrix4x4.Identity;
+        catTransform *= Matrix4x4.CreateTranslation(new Vector3(-128.0f, -128.0f, 0.0f));
+        catTransform *= Matrix4x4.CreateRotationZ((float)(_rng.NextDouble() * Math.PI * 2.0));
+        catTransform *= Matrix4x4.CreateScale(0.03f);
+        catTransform *= Matrix4x4.CreateTranslation(treeNodePoint3d.AsVector3);
+        catTransform *= Matrix4x4.CreateTranslation(new Vector3(+0.5f, +0.5f, 1.0f));
+        catTransform *= Matrix4x4.CreateTranslation(new Vector3(+0.0f, +0.0f, 0.25f * 0.1f * 75.0f / 2.0f - 0.5f));
+        ExternalBuildItems.Add(new ExternalBuildItem("E:/tree-source-models/Low_Poly_Cat.3mf", catTransform));
+        
+        var holderTransform = Matrix4x4.Identity;
+        holderTransform *= Matrix4x4.CreateTranslation(new Vector3(0.0f, 0.0f, 0.0f));
+        holderTransform *= Matrix4x4.CreateScale(0.25f);
+        holderTransform *= Matrix4x4.CreateTranslation(treeNodePoint3d.AsVector3);
+        holderTransform *= Matrix4x4.CreateTranslation(new Vector3(+0.5f, +0.5f, 1.0f));
+        holderTransform *= Matrix4x4.CreateTranslation(new Vector3(+0.0f, +0.0f, -0.5f));
+        ExternalBuildItems.Add(new ExternalBuildItem("E:/tree-source-models/cat-holder.3mf", holderTransform));
+
         CatVoxels.Set(treeNodePoint3d, default);
         return true;
     }
