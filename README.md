@@ -4,7 +4,7 @@ It is a program that generates a 3d-printable tree populated by cats.
 
 # What does the tree look like
 
-![Cat Tree Rendering](./cat-tree-render.PNG)
+![Cat Tree Rendering](./cat-tree-render.png)
 
 # How does it work
 
