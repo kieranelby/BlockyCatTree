@@ -142,7 +142,7 @@ public class SpaceColonization : IGenerator
         bool Strengthen = true,
         float UnitVoxelStaticWeight = 2.0f,
         float UnitVoxelDynamicWeight = 3.0f,
-        float WeightLimit = 180.0f
+        float WeightLimit = 170.0f
         );
 
     private class TreeNode(Point3d point3d)
