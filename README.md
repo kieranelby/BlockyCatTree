@@ -4,7 +4,11 @@ It is a program that generates a 3d-printable tree populated by cats.
 
 # What does the tree look like
 
-![Cat Tree Rendering](./cat-tree-render.png)
+![Cat Tree Rendering](./cat-tree-render.PNG)
+
+# How does it work
+
+The tree is grown procedurally in voxels using a space colonization algorithm, then rendered to a triangle mesh.
 
 # License
 
