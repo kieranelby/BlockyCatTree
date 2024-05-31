@@ -1,5 +1,12 @@
-# License
+# What is this
 
+It is a program that generates a 3d-printable tree populated by cats.
+
+# What does the tree look like
+
+![Cat Tree Rendering](./cat-tree-render.png)
+
+# License
 
 This work is licensed under a Creative Commons (4.0 International License) Attribution-NonCommercial license - https://creativecommons.org/licenses/by-nc/4.0/ .
 
