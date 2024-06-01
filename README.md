@@ -1,14 +1,23 @@
 # What is this
 
-It is a program that generates a 3d-printable tree populated by cats.
+It is a program that generates a 3d-printable tree populated by lots of small cats. 45 cats to be precise.
 
 # What does the tree look like
 
 ![Cat Tree Rendering](./cat-tree-render.png)
+![Cat Tree Just Printed](./cat-tree-just-printed.jpg)
+
+# Can I print it
+
+Maybe, it worked for me on a Bambu P1S. Model available from https://makerworld.com/en/models/480868#profileId-392522 .
 
 # How does it work
 
 The tree is grown procedurally in voxels using a space colonization algorithm, then rendered to a triangle mesh.
+
+To make the tree look more realistic, a strengthening algorithm is used based on weight and wind resistance.
+
+The cats are added on high-up flat areas with space above.
 
 # License
 
